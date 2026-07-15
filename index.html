@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naradha AI - Screen Helper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="assistant-card">
+        <h2>Naradha AI</h2>
+        <p class="subtitle">The Omnipresent Screen & Slang Companion</p>
+        
+        <!-- Interactive Video Window -->
+        <div class="video-container">
+            <video id="screen-video" autoplay playsinline muted></video>
+            <div id="placeholder-text">Click "Start Screen Sync" to begin</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="control-box">
+            <button id="sync-btn" class="btn primary">Start Screen Sync</button>
+            <button id="capture-btn" class="btn secondary" disabled>Analyze Screen</button>
+        </div>
+
+        <!-- Chat / Prompt Area -->
+        <div class="input-section">
+            <input type="text" id="user-query" placeholder="Ask in Telugu/Hindi slang (e.g. Mama, ee error enti?)" disabled>
+        </div>
+
+        <!-- Output Display -->
+        <div class="response-box">
+            <p><strong>System Status:</strong> <span id="status">Ready</span></p>
+            <div id="ai-response">Naradha AI's insights will show up here...</div>
+        </div>
+    </div>
+    
+    <!-- JavaScript Link -->
+    <script src="app.js"></script>
+</body>
+</html>

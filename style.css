@@ -1,0 +1,84 @@
+body {
+    background: #0f0f11;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.assistant-card {
+    background: #18181c;
+    padding: 30px;
+    border-radius: 20px;
+    width: 420px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    border: 1px solid #2d2d34;
+}
+h2 { margin: 0 0 5px 0; color: #4dadff; letter-spacing: 0.5px; }
+.subtitle { margin: 0 0 20px 0; font-size: 13px; color: #8a8a93; }
+.video-container {
+    width: 100%;
+    height: 220px;
+    background: #09090b;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #27272a;
+}
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+#placeholder-text { color: #52525b; font-size: 14px; }
+.control-box {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0 15px 0;
+}
+.btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.primary { background: #4dadff; color: #000; }
+.primary:hover { background: #3fa0ee; }
+.secondary { background: #27272a; color: #fff; }
+.secondary:hover { background: #3f3f46; }
+.btn:disabled { background: #18181b; color: #3f3f46; cursor: not-allowed; border: 1px solid #27272a; }
+.input-section {
+    margin-bottom: 15px;
+}
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    background: #09090b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    color: #fff;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+input[type="text"]:focus {
+    outline: none;
+    border-color: #4dadff;
+}
+.response-box {
+    background: #09090b;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 13px;
+    border: 1px solid #27272a;
+}
+#ai-response { color: #a1a1aa; line-height: 1.5; margin-top: 8px; }
