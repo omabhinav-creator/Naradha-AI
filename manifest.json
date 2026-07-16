@@ -3,8 +3,17 @@
   "name": "Naradha AI Companion",
   "version": "1.0",
   "description": "Omnipresent Slang-Robust Context Sidebar",
-  "permissions": ["activeTab", "tabs", "storage", "sidePanel"],
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "sidePanel",
+    "offscreen"
+  ],
   "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "side_panel": {
     "default_path": "index.html"
   },
