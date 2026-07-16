@@ -2,8 +2,12 @@
   "manifest_version": 3,
   "name": "Naradha AI",
   "version": "1.0",
-  "description": "Omnipresent Screen & Slang Companion",
+  "description": "Omnipresent Screen & Slang Companion for Bharat",
   "permissions": ["activeTab", "tabs", "storage"],
+  "host_permissions": [
+    "https://api.vachana.ai/*",
+    "https://getalchemystai.com/*"
+  ],
   "action": {
     "default_popup": "index.html"
   }

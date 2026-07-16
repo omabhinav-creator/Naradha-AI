@@ -167,3 +167,10 @@ function executeSystemCommand(responseHtml) {
         chrome.tabs.create({ url: "https://www.youtube.com/results?search_query=salaar+fight+scene" });
     }
 }
+// Add Enter key listener to the text input field
+queryInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Prevents page reload
+        captureBtn.click();     // Automatically clicks the Analyze button
+    }
+});
