@@ -26,15 +26,14 @@
 
         <nav>
             <button class="menu-btn active">💬 Chat</button>
-            <button class="menu-btn">📄 Documents</button>
-            <button class="menu-btn">🖥 Screen</button>
+            <button class="menu-btn">📄 Documents Creation</button>
+            <button class="menu-btn">🖥 Image/Video Generation</button>
             <button class="menu-btn">⚙ Settings</button>
         </nav>
 
     </aside>
 
     <!-- Main Content -->
-
     <main class="main-content">
 
         <header class="topbar">
@@ -50,103 +49,94 @@
 
         </header>
 
-
         <!-- Hero -->
-<div class="scrollable-center">
-        <section class="hero">
+        <div class="scrollable-center">
+            <section class="hero">
 
-            <div class="ai-orb"></div>
+                <div class="ai-orb"></div>
 
-          <h2>     
-Understanding Every Indian Conversation, Naturally.
-</h2>
+                <h2>     
+                Understanding Every Indian Conversation, Naturally.
+                </h2>
 
-<p class="hero-language">
-English • తెలుగు • हिन्दी • Hinglish
-</p>
+                <p class="hero-language">
+                English • తెలుగు • हिन्दी • Hinglish
+                </p>
 
-<p class="hero-description">
-Naradha AI understands regional slang, mixed languages,
-and provides real-time assistance using live screen context.
-</p>
+                <p class="hero-description">
+                Naradha AI understands regional slang, mixed languages,
+                and provides real-time assistance using live screen context.
+                </p>
 
-<div class="ai-status">
-    <span class="status-dot"></span>
-    AI Core Active
-</div>
+                <div class="ai-status">
+                    <span class="status-dot"></span>
+                    AI Core Active
+                </div>
 
-        </section>
+            </section>
 
+            <!-- Bottom Panels -->
+            <div class="content-area">
 
-        <!-- Bottom Panels -->
-         <div class="content-area">
+                <section class="bottom-grid">
 
-        <section class="bottom-grid">
+                    <!-- Screen Preview -->
+                    <div class="panel">
 
-            <!-- Screen Preview -->
+                        <h3>Live Screen Analysis</h3>
 
-            <div class="panel">
+                        <div class="video-container">
 
-                <h3>Live Screen Analysis</h3>
+                            <video
+                                id="screen-video"
+                                autoplay
+                                playsinline
+                                muted>
+                            </video>
 
-                <div class="video-container">
+                            <div id="placeholder-text">
 
-                    <video
-                        id="screen-video"
-                        autoplay
-                        playsinline
-                        muted>
-                    </video>
+                                Click "Start Screen Sync"
 
-                    <div id="placeholder-text">
+                            </div>
 
-                        Click "Start Screen Sync"
+                        </div>
 
                     </div>
 
-                </div>
+                    <!-- AI Response -->
+                    <div class="panel">
 
+                        <h3>Naradha Insights</h3>
+
+                        <p>
+                            <strong>Status:</strong>
+                            <span id="status">
+                                Ready
+                            </span>
+                        </p>
+
+                        <div id="ai-response">
+
+                            Naradha AI is ready...
+
+                        </div>
+
+                    </div>
+
+                </section>
             </div>
 
-
-            <!-- AI Response -->
-
-            <div class="panel">
-
-                <h3>Naradha Insights</h3>
-
-                <p>
-                    <strong>Status:</strong>
-
-                    <span id="status">
-
-                        Ready
-
-                    </span>
-                </p>
-
-                <div id="ai-response">
-
-                    Naradha AI is ready...
-
-                </div>
-
-            </div>
-
-        </section>
-</div>
-
-</div>
+        </div>
 
         <!-- Chat Input -->
-
         <section class="chat-input">
 
+            <!-- UNLOCKED: 'disabled' attribute has been removed completely -->
             <input
                 type="text"
                 id="user-query"
-                placeholder="Ask in English, Telugu, Hindi... or mix them naturally."
-                disabled>
+                placeholder="Ask in English, Telugu, Hindi... or mix them naturally.">
 
             <button id="mic-btn">
                 🎤
@@ -156,21 +146,15 @@ and provides real-time assistance using live screen context.
 
     </main>
 
-
     <!-- Right Action Panel -->
-
     <aside class="action-panel">
 
         <button
             id="sync-btn"
             class="action-card">
-
             🖥
-
             <span>
-
                 Start Screen Sync
-
             </span>
 
         </button>
@@ -183,9 +167,7 @@ and provides real-time assistance using live screen context.
             📷
 
             <span>
-
                 Analyze Screen
-
             </span>
 
         </button>
@@ -195,9 +177,7 @@ and provides real-time assistance using live screen context.
             🌐
 
             <span>
-
               Auto Language Detection
-
             </span>
 
         </div>
@@ -207,9 +187,7 @@ and provides real-time assistance using live screen context.
             🎤
 
             <span>
-
               Talk With Naradha
-
             </span>
 
         </div>

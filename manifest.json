@@ -1,18 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Naradha AI",
+  "name": "Naradha AI Companion",
   "version": "1.0",
-  "description": "Omnipresent Screen & Slang Companion for Bharat",
-<<<<<<< Updated upstream
-  "permissions": ["activeTab", "tabs", "storage"],
-  "host_permissions": [
-    "https://api.vachana.ai/*",
-    "https://getalchemystai.com/*"
-  ],
-=======
-  "permissions": ["activeTab", "tabs", "storage", "offscreen"],
->>>>>>> Stashed changes
+  "description": "Omnipresent Slang-Robust Context Sidebar",
+  "permissions": ["activeTab", "tabs", "storage", "sidePanel"],
+  "host_permissions": ["<all_urls>"],
+  "side_panel": {
+    "default_path": "index.html"
+  },
   "action": {
-    "default_popup": "index.html"
+    "default_title": "Open Naradha Side Panel"
   }
 }
