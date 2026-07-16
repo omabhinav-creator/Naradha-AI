@@ -130,3 +130,32 @@ function executeSystemCommand(responseHtml) {
         chrome.tabs.create({ url: "https://www.youtube.com/results?search_query=salaar+fight+scene" });
     }
 }
+async function processVoiceQuery(audioBlob) {
+    let formData = new FormData();
+    formData.append("file", audioBlob, "audio.wav");
+    formData.append("language", "telugu"); // Tells Gnani to process local Telugu accents
+
+    try {
+        // Call Gnani.ai Speech-to-Text Vachana API using your hackathon partner token
+        const res = await fetch("https://api.gnani.ai/v1/transcribe", {
+            method: "POST",
+            headers: { "Authorization": "vach_1ytE2CY5X2Or7xPaKn8XEHlytOkFXBWDFihsYWQSrY17v47aiCSszwjTZELGRh9L3et7vAvZpy3U2nNdLPUd1WPVDSCuCVJ0_ecccae9449497653180a0028b63d86c9" },
+            body: formData
+        });
+        const data = await res.json();
+
+        // Extract translated text query
+        const textQuery = data.transcript; 
+
+        // Get the screen frame from Member 2's canvas code
+        const canvas = document.createElement('canvas');
+        const video = document.getElementById('screen-video');
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Send text and image over to the main model engine
+        sendDataToAI(canvas.toDataURL('image/jpeg'), textQuery);
+    } catch (err) {
+        console.error("Voice translation failed:", err);
+    }
+}
