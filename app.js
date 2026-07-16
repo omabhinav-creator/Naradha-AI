@@ -1,3 +1,6 @@
+// =========================================================================
+// 1. SCREEN CAPTURE & FRAMING LOGIC
+// =========================================================================
 let screenStream = null;
 let mediaRecorder;
 let audioChunks = [];
@@ -12,7 +15,11 @@ const statusText = document.getElementById('status');
 const micBtn = document.getElementById('mic-btn');
 const aiResponseContainer = document.getElementById('ai-response');
 
+<<<<<<< Updated upstream
 // 1. Capture the desktop screen stream
+=======
+// Request desktop screen stream
+>>>>>>> Stashed changes
 syncBtn.addEventListener('click', async () => {
     try {
         statusText.innerText = "Requesting screen access...";
@@ -37,7 +44,11 @@ syncBtn.addEventListener('click', async () => {
     }
 });
 
+<<<<<<< Updated upstream
 // 2. Capture Image Frame via Button Chat Input
+=======
+// Capture frame and send with manual text input query
+>>>>>>> Stashed changes
 captureBtn.addEventListener('click', () => {
     if (!screenStream) return;
 
@@ -47,27 +58,49 @@ captureBtn.addEventListener('click', () => {
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
     const ctx = canvas.getContext('2d');
+<<<<<<< Updated upstream
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
     
+=======
+    
+    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+>>>>>>> Stashed changes
     const base64Image = canvas.toDataURL('image/jpeg', 0.7); 
-    console.log("Captured image Base64 format ready!");
     
     statusText.innerText = "Frame captured successfully!";
+<<<<<<< Updated upstream
     const queryText = queryInput.value || "Bhai, what is on my screen?";
     
     // Pass visual state and input text directly to Alchemyst AI
     callAlchemystAI(base64Image, queryText);
 });
+=======
+    
+    const queryText = queryInput.value || "Bhai, what is on my screen?";
+    
+    // Pass captured canvas and the written query to Alchemyst AI
+    callAlchemystAI(base64Image, queryText);
+});
+
+
+// =========================================================================
+// 2. MICROPHONE CAPTURE LOGIC (Via Offscreen Helper)
+// =========================================================================
+const micBtn = document.getElementById('mic-btn');
+let isRecording = false;
+>>>>>>> Stashed changes
 
 // 3. Audio Recording Handler Loop
 micBtn.addEventListener('click', async () => {
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-        mediaRecorder.stop();
+    if (isRecording) {
+        isRecording = false;
         micBtn.innerText = "🎤";
+        chrome.runtime.sendMessage({ target: 'offscreen', type: 'stop-recording' });
         return;
     }
 
     try {
+<<<<<<< Updated upstream
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
@@ -172,5 +205,141 @@ queryInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault(); // Prevents page reload
         captureBtn.click();     // Automatically clicks the Analyze button
+=======
+        statusText.innerText = "Listening...";
+        isRecording = true;
+        micBtn.innerText = "🛑";
+
+        const hasDocument = await chrome.offscreen.hasDocument();
+        if (!hasDocument) {
+            await chrome.offscreen.createDocument({
+                url: 'offscreen.html',
+                reasons: [chrome.offscreen.Reason.USER_MEDIA],
+                justification: 'Recording microphone for voice transcription.'
+            });
+        }
+
+        chrome.runtime.sendMessage({ target: 'offscreen', type: 'start-recording' });
+
+    } catch (err) {
+        console.error("Could not spin up offscreen mic:", err);
+        statusText.innerText = "Mic launch failed!";
+        isRecording = false;
+        micBtn.innerText = "🎤";
+    }
+});
+
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'audio-data') {
+        statusText.innerText = "Processing Voice...";
+
+        fetch(message.data)
+            .then(res => res.blob())
+            .then(audioBlob => {
+                processVoiceQuery(audioBlob);
+            });
+    }
+});
+
+
+// =========================================================================
+// 3. API INTEGRATIONS (Gnani.ai & Alchemyst AI)
+// =========================================================================
+
+// Step A: Convert voice to text using Gnani.ai STT
+async function processVoiceQuery(audioBlob) {
+    let formData = new FormData();
+    formData.append("file", audioBlob, "audio.wav");
+    formData.append("language", "telugu"); // Multi-dialect support configuration
+
+    try {
+        // Gnani.ai Speech-to-Text call
+        const res = await fetch("https://api.gnani.ai/v1/transcribe", {
+            method: "POST",
+            headers: { 
+                "Authorization": "vach_1ytE2CY5X2Or7xPaKn8XEHlytOkFXBWDFihsYWQSrY17v47aiCSszwjTZELGRh9L3et7vAvZpy3U2nNdLPUd1WPVDSCuCVJ0_ecccae9449497653180a0028b63d86c9" 
+            },
+            body: formData
+        });
+        const data = await res.json();
+        const textQuery = data.transcript || "Bhai, what is on my screen?"; 
+
+        // Grab current screen frame context
+        let base64Image = "";
+        if (screenStream && videoElement) {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth || 640; 
+            canvas.height = videoElement.videoHeight || 480;
+            canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            base64Image = canvas.toDataURL('image/jpeg', 0.7);
+        }
+
+        // Forward transcribed voice text + canvas context to Alchemyst AI
+        callAlchemystAI(base64Image, textQuery);
+    } catch (err) {
+        console.error("Voice translation pipeline failed:", err);
+        statusText.innerText = "Voice translation failed.";
+    }
+}
+
+// Step B: Send multimodal context to Alchemyst AI
+async function callAlchemystAI(base64Image, userTextQuery) {
+    const aiResponseContainer = document.getElementById('ai-response');
+    statusText.innerText = "Naradha is thinking...";
+    aiResponseContainer.innerText = "Analyzing screen & query...";
+
+    const systemBanterPrompt = `
+    You are Naradha AI, a witty local buddy. Speak in localized Hinglish/Telugish slang. 
+    If the user asks to play a video, end the response with "[COMMAND: OPEN YOUTUBE]".
+    `;
+
+    try {
+        const response = await fetch("https://getalchemystai.com/api/v1/chat", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": "Bearer YOUR_ALCHEMYST_API_KEY" // Add your actual Alchemyst API Key here
+            },
+            body: JSON.stringify({
+                messages: [
+                    { role: "system", content: systemBanterPrompt },
+                    { role: "user", content: `Query: ${userTextQuery}. Screen Context Base64: ${base64Image}` }
+                ]
+            })
+        });
+        
+        const data = await response.json();
+        const responseText = data.choices[0].message.content;
+
+        // Render response visually, leaving out the control tag
+        aiResponseContainer.innerHTML = responseText.replace("[COMMAND: OPEN YOUTUBE]", "");
+        statusText.innerText = "Done!";
+        
+        // Check and trigger YouTube navigation command
+        executeSystemCommand(responseText);
+    } catch (err) {
+        console.error("Alchemyst AI connection failed:", err);
+        aiResponseContainer.innerText = "Error calling AI: " + err.message;
+        statusText.innerText = "Failed.";
+    }
+}
+
+
+// =========================================================================
+// 4. AUTOMATION ENGINE (System Command Executor)
+// =========================================================================
+function executeSystemCommand(responseHtml) {
+    if (responseHtml.includes("[COMMAND: OPEN YOUTUBE]")) {
+        statusText.innerText = "Opening YouTube...";
+        
+        const searchQuery = "salaar fight scene";
+        const targetUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+        
+        if (typeof chrome !== "undefined" && chrome.tabs) {
+            chrome.tabs.create({ url: targetUrl });
+        } else {
+            window.open(targetUrl, '_blank'); // Standard browser testing fallback
+        }
+>>>>>>> Stashed changes
     }
 });
