@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Naradha AI",
+  "version": "1.0",
+  "description": "Omnipresent Screen & Slang Companion",
+  "permissions": ["activeTab", "tabs", "storage"],
+  "action": {
+    "default_popup": "index.html"
+  }
+}

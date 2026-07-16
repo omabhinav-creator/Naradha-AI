@@ -82,3 +82,14 @@ input[type="text"]:focus {
     border: 1px solid #27272a;
 }
 #ai-response { color: #a1a1aa; line-height: 1.5; margin-top: 8px; }
+body {
+    margin: 0;
+    width: 360px;
+    height: 550px;
+    background: #18181c;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    overflow-x: hidden;
+}
+.assistant-card { padding: 15px; }
+.video-container { height: 160px; width: 100%; }

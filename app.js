@@ -91,3 +91,42 @@ async function sendDataToAI(base64ImageClean, userTextQuery) {
         statusText.innerText = "Failed.";
     }
 }
+const micBtn = document.getElementById('mic-btn');
+let mediaRecorder;
+let audioChunks = [];
+
+micBtn.addEventListener('click', async () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        micBtn.innerText = "🎤";
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => { audioChunks.push(event.data); };
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            document.getElementById('status').innerText = "Processing Voice...";
+            // Send the captured audio to Member 3's function
+            processVoiceQuery(audioBlob);
+        };
+
+        mediaRecorder.start();
+        micBtn.innerText = "🛑";
+        document.getElementById('status').innerText = "Listening...";
+    } catch (err) {
+        console.error("Mic access denied", err);
+    }
+});
+function executeSystemCommand(responseHtml) {
+    // If the AI response contains our custom command flag
+    if (responseHtml.includes("[COMMAND: OPEN YOUTUBE]")) {
+        document.getElementById('status').innerText = "Opening YouTube...";
+        // Extension API to open and search automatically
+        chrome.tabs.create({ url: "https://www.youtube.com/results?search_query=salaar+fight+scene" });
+    }
+}
