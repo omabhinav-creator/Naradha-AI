@@ -14,9 +14,9 @@
 
 <body>
 
-<div class="app-container">
+<div id="app-viewport" class="app-container">
 
-    <!-- Sidebar -->
+    <!-- Left Sidebar Rail Component -->
     <aside class="sidebar">
 
         <div class="logo">
@@ -25,103 +25,68 @@
         </div>
 
         <nav>
-            <button class="menu-btn active">💬 Chat</button>
-            <button class="menu-btn">📄 Documents Creation</button>
-            <button class="menu-btn">🖥 Image/Video Generation</button>
-            <button class="menu-btn">⚙ Settings</button>
+            <button class="menu-btn active">💬 <span>Chat Dashboard</span></button>
+            <button id="toggle-mini-btn" class="menu-btn mini-mode-toggle">📱 <span>Mini Chat Mode</span></button>
+            
+            <hr class="sidebar-divider">
+            
+            <button id="sync-btn" class="menu-btn">🖥️ <span>Start Screen Sync</span></button>
+            <button id="capture-btn" class="menu-btn" disabled>📷 <span>Analyze Screen</span></button>
+            <button class="menu-btn">📄 <span>Documents Creation</span></button>
+            <button class="menu-btn">🖥️ <span>Image/Video Gen</span></button>
+            <button class="menu-btn">⚙️ <span>Settings</span></button>
         </nav>
 
+        <button id="launch-tab-btn" class="icon-tab-btn" title="Launch Full Unrestricted Window View">↗</button>
     </aside>
 
-    <!-- Main Content -->
+    <!-- Main Content Panel Window -->
     <main class="main-content">
 
         <header class="topbar">
-
             <div>
                 <h1>Hello, I'm Naradha AI</h1>
                 <p>Your AI. Your Language.</p>
             </div>
-
             <div class="language-chip">
                 🌐 Auto Detect
             </div>
-
         </header>
 
-        <!-- Hero -->
         <div class="scrollable-center">
+            
             <section class="hero">
-
                 <div class="ai-orb"></div>
-
-                <h2>     
-                Understanding Every Indian Conversation, Naturally.
-                </h2>
-
-                <p class="hero-language">
-                English • తెలుగు • हिन्दी • Hinglish
-                </p>
-
+                <h2>Understanding Every Indian Conversation, Naturally.</h2>
+                <p class="hero-language">English • తెలుగు • हिन्दी • Hinglish</p>
                 <p class="hero-description">
-                Naradha AI understands regional slang, mixed languages,
-                and provides real-time assistance using live screen context.
+                    Naradha AI understands regional slang, mixed languages,
+                    and provides real-time assistance using live screen context.
                 </p>
-
                 <div class="ai-status">
                     <span class="status-dot"></span>
                     AI Core Active
                 </div>
-
             </section>
 
-            <!-- Bottom Panels -->
             <div class="content-area">
-
                 <section class="bottom-grid">
 
-                    <!-- Screen Preview -->
                     <div class="panel">
-
                         <h3>Live Screen Analysis</h3>
-
                         <div class="video-container">
-
-                            <video
-                                id="screen-video"
-                                autoplay
-                                playsinline
-                                muted>
-                            </video>
-
-                            <div id="placeholder-text">
-
-                                Click "Start Screen Sync"
-
-                            </div>
-
+                            <video id="screen-video" autoplay playsinline muted></video>
+                            <div id="placeholder-text">Click "Start Screen Sync"</div>
                         </div>
-
                     </div>
 
-                    <!-- AI Response -->
                     <div class="panel">
-
                         <h3>Naradha Insights</h3>
-
                         <p>
                             <strong>Status:</strong>
-                            <span id="status">
-                                Ready
-                            </span>
+                            <span id="status">Ready</span>
                         </p>
-
-                        <div id="ai-response">
-
-                            Naradha AI is ready...
-
-                        </div>
-
+                        <div id="ai-response">Naradha AI is ready...</div>
                     </div>
 
                 </section>
@@ -129,70 +94,15 @@
 
         </div>
 
-        <!-- Chat Input -->
+        <!-- Sticky User Input Interface Layout -->
         <section class="chat-input">
-
-            <!-- UNLOCKED: 'disabled' attribute has been removed completely -->
-            <input
-                type="text"
-                id="user-query"
-                placeholder="Ask in English, Telugu, Hindi... or mix them naturally.">
-
-            <button id="mic-btn">
-                🎤
-            </button>
-
+            <input type="text" id="user-query" placeholder="Ask in English, Telugu, Hindi... or mix them naturally.">
+            <!-- RELOCATED TOGETHER: Mic and Send buttons arranged side-by-side -->
+            <button id="mic-btn" title="Voice Query">🎤</button>
+            <button id="send-btn" title="Send Query">➔</button>
         </section>
 
     </main>
-
-    <!-- Right Action Panel -->
-    <aside class="action-panel">
-
-        <button
-            id="sync-btn"
-            class="action-card">
-            🖥
-            <span>
-                Start Screen Sync
-            </span>
-
-        </button>
-
-        <button
-            id="capture-btn"
-            class="action-card"
-            disabled>
-
-            📷
-
-            <span>
-                Analyze Screen
-            </span>
-
-        </button>
-
-        <div class="action-card">
-
-            🌐
-
-            <span>
-              Auto Language Detection
-            </span>
-
-        </div>
-
-        <div class="action-card">
-
-            🎤
-
-            <span>
-              Talk With Naradha
-            </span>
-
-        </div>
-
-    </aside>
 
 </div>
 
