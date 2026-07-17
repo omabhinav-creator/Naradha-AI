@@ -91,21 +91,28 @@ if (queryInput) {
 }
 
 function executeTextPipeline() {
+
     const textVal = queryInput.value.trim();
     if (!textVal) return;
-    
+
     statusText.innerText = "Scanning active visual frame...";
     let base64Frame = "";
-    
+
     if (screenStream && videoElement) {
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = videoElement.videoWidth || 1280;
         canvas.height = videoElement.videoHeight || 720;
-        canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        base64Frame = canvas.toDataURL('image/jpeg', 0.8);
+        canvas.getContext("2d").drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        base64Frame = canvas.toDataURL("image/jpeg", 0.8);
     }
-    
-    queryInput.value = ""; // Clear text input field
+
+    // Clear the textbox
+    queryInput.value = "";
+
+    // Show mic again, hide send
+    sendBtn.classList.remove("active");
+    micBtn.classList.add("active");
+
     callAlchemystAI(base64Frame, textVal);
 }
 
@@ -360,3 +367,34 @@ function executeSystemCommand(responseHtml) {
         }
     }
 }
+
+micBtn.classList.remove("active");
+sendBtn.classList.add("active");
+
+queryInput.addEventListener("input", function () {
+
+    const hasText = queryInput.value.trim().length > 0;
+
+    if (hasText) {
+        micBtn.classList.remove("active");
+        sendBtn.classList.add("active");
+    } else {
+        sendBtn.classList.remove("active");
+        micBtn.classList.add("active");
+    }
+
+    console.log("Typing:", hasText);
+    console.log("Mic:", micBtn.className);
+    console.log("Send:", sendBtn.className);
+
+});
+
+queryInput.addEventListener("keypress",(e)=>{
+
+    if(e.key==="Enter"){
+
+        sendBtn.click();
+
+    }
+
+});

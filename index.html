@@ -14,6 +14,38 @@
 
 <body>
 
+    <div class="stars">
+
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+
+</div>
+
+<div class="cosmic-dust">
+
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+
+</div>
+
 <div id="app-viewport" class="app-container">
 
     <!-- Left Sidebar Rail Component -->
@@ -55,19 +87,85 @@
 
         <div class="scrollable-center">
             
-            <section class="hero">
-                <div class="ai-orb"></div>
-                <h2>Understanding Every Indian Conversation, Naturally.</h2>
-                <p class="hero-language">English • తెలుగు • हिन्दी • Hinglish</p>
-                <p class="hero-description">
-                    Naradha AI understands regional slang, mixed languages,
-                    and provides real-time assistance using live screen context.
-                </p>
-                <div class="ai-status">
-                    <span class="status-dot"></span>
-                    AI Core Active
-                </div>
-            </section>
+           <section class="hero">
+
+    <div class="hero-orbit">
+
+        <div class="orbit"></div>
+
+        <div class="ring ring1"></div>
+        <div class="ring ring2"></div>
+        <div class="ring ring3"></div>
+
+        <div class="ai-orb">
+
+            <div class="orb-core"></div>
+
+            <div class="orb-highlight"></div>
+
+        </div>
+
+        <div class="lang english">
+
+            <span>English</span>
+
+            <div class="lang-dot blue"></div>
+
+        </div>
+
+        <div class="lang telugu">
+
+            <span>తెలుగు</span>
+
+            <div class="lang-dot yellow"></div>
+
+        </div>
+
+        <div class="lang hindi">
+
+            <span>हिन्दी</span>
+
+            <div class="lang-dot pink"></div>
+
+        </div>
+
+    </div>
+
+    <h2>
+        Understanding Every Indian Conversation, Naturally.
+    </h2>
+
+    <p class="hero-language">
+
+        <span>English</span>
+
+        <span>•</span>
+
+        <span>తెలుగు</span>
+
+        <span>•</span>
+
+        <span>हिन्दी</span>
+
+    </p>
+
+    <p class="hero-description">
+
+        Naradha AI understands regional slang,
+        mixed languages, and provides real-time
+        assistance using live screen context.
+
+    </p>
+
+    <div class="ai-status">
+
+        <span class="status-dot"></span>
+
+        AI Core Active
+
+    </div>
+
+</section>
 
             <div class="content-area">
                 <section class="bottom-grid">
@@ -76,7 +174,9 @@
                         <h3>Live Screen Analysis</h3>
                         <div class="video-container">
                             <video id="screen-video" autoplay playsinline muted></video>
-                            <div id="placeholder-text">Click "Start Screen Sync"</div>
+                            <div id="placeholder-text">🖥️
+                              <h4>Start Screen Sync</h4>
+                              <p>Share your screen securely for AI assistance.</p></div>
                         </div>
                     </div>
 
@@ -84,9 +184,42 @@
                         <h3>Naradha Insights</h3>
                         <p>
                             <strong>Status:</strong>
-                            <span id="status">Ready</span>
+                            <span id="status">Ready to assist</span>
                         </p>
-                        <div id="ai-response">Naradha AI is ready...</div>
+                       <div id="ai-response">
+
+    <div class="naradha-welcome">
+
+        <div class="naradha-avatar">
+            
+        </div>
+
+        <div class="naradha-message">
+
+            <h4>Welcome to Naradha AI</h4>
+
+            <p>
+                I understand English, తెలుగు, हिन्दी and naturally mixed Indian conversations.
+            </p>
+            <br>
+
+            <div class="sample-prompts">
+
+                <div class="prompt-card">
+                    💬 Mama, ee error enti?
+                </div>
+
+                <div class="prompt-card">
+                    💬 Yeh install kyun nahi ho raha?
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
                     </div>
 
                 </section>
@@ -95,12 +228,23 @@
         </div>
 
         <!-- Sticky User Input Interface Layout -->
-        <section class="chat-input">
-            <input type="text" id="user-query" placeholder="Ask in English, Telugu, Hindi... or mix them naturally.">
-            <!-- RELOCATED TOGETHER: Mic and Send buttons arranged side-by-side -->
-            <button id="mic-btn" title="Voice Query">🎤</button>
-            <button id="send-btn" title="Send Query">➔</button>
-        </section>
+       <section class="chat-input">
+
+    <input
+        type="text"
+        id="user-query"
+        placeholder="Ask in English, Telugu, Hindi... or mix them naturally."
+    >
+
+    <button id="mic-btn" class="chat-action active" title="Voice Query">
+        🎤
+    </button>
+
+    <button id="send-btn" class="chat-action" title="Send">
+        ➜
+    </button>
+
+</section>
 
     </main>
 
