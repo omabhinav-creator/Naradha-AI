@@ -1416,3 +1416,13 @@ background:#ff8fe9;
 box-shadow:0 0 18px #ff8fe9;
 
 }
+/* Sidebar Button Center Reset for Mini Chat Mode Grid Alignment */
+.app-container.mini-mode aside.sidebar nav button,
+aside.sidebar nav button {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 12px 0 !important;
+    width: 100% !important;
+}

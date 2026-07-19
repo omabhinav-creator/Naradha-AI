@@ -4,359 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Naradha AI - Your AI. Your Language.</title>
-
     <link rel="icon" href="Naradha AI Logo.png" type="image/png">
     <link rel="stylesheet" href="style.css">
-
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
-        /* Contextual Additions for the Emoji Feature Popover */
-        .chat-input-wrapper {
-            position: relative;
-            flex: 1;
-            display: flex;
-        }
-        .chat-input-wrapper input {
-            width: 100%;
-        }
+        .chat-input-wrapper { position: relative; flex: 1; display: flex; }
+        .chat-input-wrapper input { width: 100%; }
         .emoji-dropdown {
-            display: none;
-            position: absolute;
-            bottom: 60px;
-            right: 10px;
-            background: rgba(26, 27, 38, 0.95);
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            width: 280px;
+            display: none; position: absolute; bottom: 60px; right: 10px;
+            background: rgba(26, 27, 38, 0.95); border: 1px solid #333;
+            border-radius: 12px; padding: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px); z-index: 1000; width: 280px;
         }
-        .emoji-dropdown.active {
-            display: block;
-        }
-        .emoji-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .emoji-item {
-            font-size: 20px;
-            cursor: pointer;
-            text-align: center;
-            padding: 4px;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .emoji-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
+        .emoji-dropdown.active { display: block; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-height: 200px; overflow-y: auto; }
+        .emoji-item { font-size: 20px; cursor: pointer; text-align: center; padding: 4px; border-radius: 6px; transition: background 0.2s; }
+        .emoji-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .chat-msg-row { margin-bottom: 12px; display: flex; flex-direction: column; }
+        .user-bubble { align-self: flex-end; background: rgba(255,255,255,0.08); padding: 12px; border-radius: 14px 14px 0 14px; max-width: 80%; border-right: 3px solid #cbd5e1; color: #fff; font-size: 14px;}
+        .ai-bubble { align-self: flex-start; background: rgba(37, 99, 235, 0.12); padding: 12px; border-radius: 14px 14px 14px 0; max-width: 80%; border-left: 3px solid #2563eb; color: #e5e9f0; line-height: 1.6; font-size: 14px;}
     </style>
 </head>
-
 <body>
-
-    <div class="stars">
-        <span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span>
-    </div>
-
-    <div class="cosmic-dust">
-        <div></div><div></div><div></div>
-        <div></div><div></div><div></div>
-    </div>
+    <div class="stars"><span></span><span></span><span></span><span></span></div>
+    <div class="cosmic-dust"><div></div><div></div><div></div></div>
 
     <div id="app-viewport" class="app-container">
-
-        <!-- Left Sidebar Rail Component -->
-        <aside class="sidebar">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="app-sidebar">
             <div class="logo">
                 <img src="Naradha AI Logo.png" alt="Logo">
-                <h2>Naradha AI</h2>
+                <h2 class="sidebar-text">Naradha AI</h2>
             </div>
-
             <nav>
-                <button id="nav-chat" class="menu-btn active">💬 <span>Chat Dashboard</span></button>
-                <button id="toggle-mini-btn" class="menu-btn mini-mode-toggle">📱 <span>Mini Chat Mode</span></button>
-                
+                <button id="nav-chat" class="menu-btn active">💬 <span class="sidebar-text">Chat Dashboard</span></button>
+                <button id="toggle-mini-btn" class="menu-btn mini-mode-toggle">📱 <span class="sidebar-text">Mini Chat Mode</span></button>
                 <hr class="sidebar-divider">
-                
-                <button id="sync-btn" class="menu-btn">🖥️ <span>Start Screen Sync</span></button>
-                <button id="capture-btn" class="menu-btn" disabled>📷 <span>Analyze Screen</span></button>
-                <button id="nav-docs" class="menu-btn">📄 <span>Documents Creation</span></button>
-                <button id="nav-media" class="menu-btn">🖥️ <span>Image/Video Gen</span></button>
-                <button id="nav-settings" class="menu-btn">⚙️ <span>Settings</span></button>
+                <button id="sync-btn" class="menu-btn">🖥️ <span class="sidebar-text">Start Screen Sync</span></button>
+                <button id="capture-btn" class="menu-btn" disabled>📷 <span class="sidebar-text">Analyze Screen</span></button>
+                <button id="nav-docs" class="menu-btn">📄 <span class="sidebar-text">Documents Creation</span></button>
+                <button id="nav-media" class="menu-btn">🖥️ <span class="sidebar-text">Image/Video Gen</span></button>
+                <button id="nav-team" class="menu-btn">👥 <span class="sidebar-text">Team Chat</span></button>
+                <button id="nav-settings" class="menu-btn">⚙️ <span class="sidebar-text">Settings</span></button>
             </nav>
-
-            <button id="launch-tab-btn" class="icon-tab-btn" title="Launch Full Unrestricted Window View">↗</button>
+            <button id="launch-tab-btn" class="icon-tab-btn">↗</button>
         </aside>
 
-        <!-- Main Content Panel Window -->
+        <!-- Main Workspace -->
         <main class="main-content">
-
-            <!-- HEADER (Part of Dashboard View) -->
             <header id="dashboard-header" class="topbar">
                 <div>
                     <h1>Hello, I'm Naradha AI</h1>
                     <p>Your AI. Your Language.</p>
                 </div>
-                <div class="language-chip">
-                    🌐 Auto Detect
-                </div>
+                <div class="language-chip">🌐 Auto Detect</div>
             </header>
 
-            <!-- MAIN HERO & GRID AREA (Part of Dashboard View) -->
-            <div id="dashboard-view" class="scrollable-center">
-                <section class="hero">
-                    <div class="hero-orbit">
-                        <div class="orbit"></div>
-                        <div class="ring ring1"></div>
-                        <div class="ring ring2"></div>
-                        <div class="ring ring3"></div>
+            <!-- CHAT INTERFACE PANEL -->
+            <!-- REPLACE EVERYTHING INSIDE #dashboard-view WITH THIS -->
+<div id="dashboard-view" class="scrollable-center">
+    <!-- RESTORED COSMIC HERO SECTION -->
+    <section class="hero" id="cosmic-hero-screen">
+        <div class="hero-orbit">
+            <div class="orbit"></div>
+            <div class="ring ring1"></div>
+            <div class="ring ring2"></div>
+            <div class="ring ring3"></div>
 
-                        <div class="ai-orb">
-                            <div class="orb-core"></div>
-                            <div class="orb-highlight"></div>
-                        </div>
+            <div class="ai-orb">
+                <div class="orb-core"></div>
+                <div class="orb-highlight"></div>
+            </div>
 
-                        <div class="lang english">
-                            <span>English</span>
-                            <div class="lang-dot blue"></div>
-                        </div>
+            <div class="lang english"><span>English</span><div class="lang-dot blue"></div></div>
+            <div class="lang telugu"><span>తెలుగు</span><div class="lang-dot yellow"></div></div>
+            <div class="lang hindi"><span>हिन्दी</span><div class="lang-dot pink"></div></div>
+        </div>
 
-                        <div class="lang telugu">
-                            <span>తెలుగు</span>
-                            <div class="lang-dot yellow"></div>
-                        </div>
+        <h2>Understanding Every Indian Conversation, Naturally.</h2>
+        <p class="hero-language"><span>English</span><span>•</span><span>తెలుగు</span><span>•</span><span>हिन्दी</span></p>
+        <p class="hero-description">Naradha AI understands regional slang, mixed languages, and provides real-time assistance using live screen context.</p>
+        <div class="ai-status"><span class="status-dot"></span>AI Core Active</div>
+    </section>
 
-                        <div class="lang hindi">
-                            <span>हिन्दी</span>
-                            <div class="lang-dot pink"></div>
-                        </div>
+    <!-- CORE WORKSPACE PANEL LAYOUT -->
+    <div class="content-area">
+        <section class="bottom-grid" id="main-chat-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="panel" id="screen-analysis-panel">
+                <h3>Live Screen Analysis</h3>
+                <div class="video-container" style="min-height: 300px;">
+                    <video id="screen-video" autoplay playsinline muted style="width:100%; display:none; border-radius: 8px;"></video>
+                    <div id="placeholder-text">🖥️
+                        <h4>Start Screen Sync</h4>
+                        <p>Share your window layout frame cleanly here.</p>
                     </div>
-
-                    <h2>Understanding Every Indian Conversation, Naturally.</h2>
-
-                    <p class="hero-language">
-                        <span>English</span><span>•</span>
-                        <span>తెలుగు</span><span>•</span>
-                        <span>हिन्दी</span>
-                    </p>
-
-                    <p class="hero-description">
-                        Naradha AI understands regional slang, mixed languages, and provides real-time assistance using live screen context.
-                    </p>
-
-                    <div class="ai-status">
-                        <span class="status-dot"></span>
-                        AI Core Active
-                    </div>
-                </section>
-
-                <div class="content-area">
-                    <section class="bottom-grid">
-                        <div class="panel">
-                            <h3>Live Screen Analysis</h3>
-                            <div class="video-container">
-                                <video id="screen-video" autoplay playsinline muted></video>
-                                <div id="placeholder-text">🖥️
-                                    <h4>Start Screen Sync</h4>
-                                    <p>Share your screen securely for AI assistance.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="panel">
-                            <h3>Naradha Insights</h3>
-                            <p>
-                                <strong>Status:</strong>
-                                <span id="status">Ready to assist</span>
-                            </p>
-                            <div id="ai-response">
-                                <div class="naradha-welcome">
-                                    <div class="naradha-avatar"></div>
-                                    <div class="naradha-message">
-                                        <h4>Welcome to Naradha AI</h4>
-                                        <p>I understand English, తెలుగు, हिन्दी and naturally mixed Indian conversations.</p>
-                                        <br>
-                                        <div class="sample-prompts">
-                                            <div class="prompt-card" onclick="document.getElementById('user-query').value='Mama, ee error enti?';">💬 Mama, ee error enti?</div>
-                                            <div class="prompt-card" onclick="document.getElementById('user-query').value='Yeh install kyun nahi ho raha?';">💬 Yeh install kyun nahi ho raha?</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
                 </div>
-            </div> <!-- END OF DASHBOARD VIEW -->
-
-            <!-- AUTOMATED DOCUMENTS CREATION VIEW -->
-            <div id="docs-view" class="scrollable-center" style="display: none; padding: 40px 20px; color: #fff; font-family: 'Poppins', sans-serif;">
-                <h2 style="margin-top: 0; font-size: 28px; font-weight: 600;">Automated Documents Creation</h2>
-                <p style="color: #aaa; font-size: 14px; margin-bottom: 20px;">Generate localized context templates, structured business copy, graphics, or study reports instantly.</p>
-                <hr style="border: none; border-top: 1px solid #333; margin-bottom: 25px;">
-
-                <div class="docs-split-workspace" style="display: flex; gap: 20px; min-height: 500px; flex-wrap: wrap;">
-                    
-                    <!-- Left Control Settings Panel -->
-                    <div class="docs-control-panel" style="flex: 1; min-width: 300px; background: rgba(26, 27, 38, 0.4); border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
-                        <div>
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #ddd;">Document Template Archetype</label>
-                            <select id="doc-type-select" style="width: 100%; padding: 12px; background: rgba(15, 16, 26, 0.8); border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 14px;">
-                                <option value="professional-mail">Professional Corporate Mail (Hinglish/English)</option>
-                                <option value="project-charter">Technical Project Scope Document</option>
-                                <option value="meeting-minutes">MOM (Minutes of Meeting Analytics Summary)</option>
-                                <option value="regional-brief">Regional Translation Broadcast (తెలుగు / हिन्दी)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #ddd;">Contextual Writing Notes / Rules</label>
-                            <textarea id="doc-instructions" placeholder="Enter key points, objectives, names or details you want included in the document framework..." style="width: 100%; height: 140px; padding: 12px; background: rgba(15, 16, 26, 0.8); border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 14px; resize: none; box-sizing: border-box;"></textarea>
-                        </div>
-
-                        <button id="generate-doc-btn" style="background: linear-gradient(135deg, #0084ff 0%, #00c6ff 100%); color: #fff; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; margin-top: auto; transition: opacity 0.2s;">
-                            ✨ Generate Document
-                        </button>
+            </div>
+            <div class="panel" id="insights-log-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3>Naradha Insights Log</h3>
+                    <!-- GLOBAL AUDIO MUTE BUTTON AT THE TOP -->
+                    <button onclick="window.speechSynthesis.cancel();" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">🔇 Stop Voice</button>
+                </div>
+                <p><strong>Status:</strong> <span id="status">Ready</span></p>
+                <div id="ai-response" style="height: 350px; overflow-y:auto; display:flex; flex-direction:column; padding: 5px;">
+                    <!-- Chat bubbles append here dynamically -->
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+            <!-- DOCUMENTS PANEL -->
+            <div id="docs-view" class="scrollable-center" style="display: none; padding: 20px;">
+                <h2>Automated Documents Creation</h2>
+                <div class="docs-split-workspace" style="display: flex; gap: 20px; margin-top:20px;">
+                    <div style="flex: 1; background: rgba(26,27,38,0.4); padding: 20px; border-radius:12px; display:flex; flex-direction:column; gap:15px;">
+                        <label>Document Template Archetype</label>
+                        <select id="doc-type-select" style="width:100%; padding:10px; background:#1f1f2e; color:#fff; border-radius:6px; border:1px solid #333;">
+                            <option value="professional-mail">Professional Corporate Mail</option>
+                            <option value="project-charter">Technical Project Scope Document</option>
+                        </select>
+                        <label>Contextual Writing Notes</label>
+                        <textarea id="doc-instructions" placeholder="Type instructions (e.g., Write a comprehensive profile about Lord Rama)..." style="width:100%; height:120px; background:#1f1f2e; color:#fff; border-radius:6px; padding:10px; border:1px solid #333; resize:none;"></textarea>
+                        <button id="generate-doc-btn" style="background:#0084ff; color:#fff; padding:12px; border:none; border-radius:6px; cursor:pointer; font-weight:600;">✨ Generate Document</button>
                     </div>
-
-                    <!-- Right Blueprint Preview Panel with Export Toolkit -->
-                    <div class="docs-preview-panel" style="flex: 1.5; min-width: 350px; background: rgba(15, 16, 26, 0.6); border: 1px solid #222; border-radius: 12px; display: flex; flex-direction: column;">
-                        <div class="preview-header" style="padding: 12px 20px; background: rgba(26, 27, 38, 0.8); border-bottom: 1px solid #222; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; font-weight: 500; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px;">Live Sandbox Editor Engine</span>
-                            <div style="display: flex; gap: 8px;">
-                                <button id="copy-doc-btn" style="background: rgba(255,255,255,0.05); border: 1px solid #333; color: #ddd; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">📋 Copy Text</button>
-                                <button id="download-pdf-btn" style="background: rgba(0, 132, 255, 0.15); border: 1px solid #0084ff; color: #00c6ff; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500;">📥 Save as PDF</button>
-                                <button id="download-txt-btn" style="background: rgba(255,255,255,0.05); border: 1px solid #333; color: #ddd; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">📄 Download TXT</button>
+                    <div style="flex: 1.5; background: rgba(15,16,26,0.6); border-radius:12px; display:flex; flex-direction:column; border:1px solid #222;">
+                        <div style="padding:12px; background:rgba(26,27,38,0.8); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222;">
+                            <span style="font-size:12px; color:#aaa; text-transform:uppercase;">Live Sandbox Editor Engine</span>
+                            <div style="display:flex; gap:6px;">
+                                <button id="copy-doc-btn" style="background:rgba(255,255,255,0.05); border:1px solid #333; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">📋 Copy Text</button>
+                                <button id="download-pdf-btn" style="background:#2563eb; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:500;">📥 Save as PDF</button>
+                                <button id="download-txt-btn" style="background:rgba(255,255,255,0.05); border:1px solid #333; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">📄 Download TXT</button>
                             </div>
                         </div>
-                        <div id="doc-output-editor" contenteditable="true" style="flex: 1; padding: 25px; min-height: 350px; color: #e5e9f0; font-size: 15px; line-height: 1.6; outline: none; box-sizing: border-box; font-family: 'Poppins', sans-serif; overflow-y: auto;">
-                            <span style="color: #666; font-style: italic;">Your compiled document blueprint layout output stream will display right here... Feel free to explicitly type or alter elements within this sandbox block container once populated.</span>
-                        </div>
+                        <div id="doc-output-editor" contenteditable="true" style="padding:20px; color:#fff; min-height:280px; overflow-y:auto; font-size:14px; line-height:1.6;"></div>
                     </div>
-
                 </div>
             </div>
 
-            <!-- SETTINGS PANEL VIEW -->
-            <div id="settings-panel" class="scrollable-center" style="display: none; padding: 40px 20px; color: #fff; font-family: 'Poppins', sans-serif;">
-                <h2 style="margin-top: 0; font-size: 28px; font-weight: 600;">Engine Settings</h2>
-                <p style="color: #aaa; font-size: 14px; margin-bottom: 20px;">Configure your Naradha AI core preferences.</p>
-                <hr style="border: none; border-top: 1px solid #333; margin-bottom: 30px;">
-
-                <!-- API Key Input -->
-                <div class="setting-group" style="margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 15px;">Gemini API Key</label>
-                    <input type="password" id="settings-api-key" placeholder="AIzaSy..." 
-                           style="width: 100%; max-width: 500px; padding: 12px; background: rgba(26, 27, 38, 0.8); border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 14px;">
+            <!-- MEDIA IMAGE GENERATION PANEL -->
+            <div id="media-view" class="scrollable-center" style="display:none; padding:20px;">
+                <h2>Image Generation Console</h2>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <input type="text" id="image-prompt-input" placeholder="Describe the image asset..." style="flex:1; padding:12px; background:#1a1b26; color:#fff; border:1px solid #333; border-radius:8px;">
+                    <button id="generate-image-btn" style="background:#2563eb; color:#fff; padding:0 20px; border:none; border-radius:8px; cursor:pointer; font-weight:600;">🎨 Render Graphic</button>
                 </div>
-
-                <!-- Model Selector -->
-                <div class="setting-group" style="margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 15px;">AI Model Tier</label>
-                    <select id="settings-model" style="width: 100%; max-width: 526px; padding: 12px; background: rgba(26, 27, 38, 0.8); border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 14px;">
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash (Fast / Real-time Sync)</option>
-                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Analytics & Reasoning)</option>
-                    </select>
-                </div>
-
-                <!-- Language Locking -->
-                <div class="setting-group" style="margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 15px;">Default Primary Language</label>
-                    <select id="settings-lang" style="width: 100%; max-width: 526px; padding: 12px; background: rgba(26, 27, 38, 0.8); border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 14px;">
-                        <option value="auto">Auto-Detect (Regional Slang Mode)</option>
-                        <option value="en">English</option>
-                        <option value="te">Telugu (తెలుగు)</option>
-                        <option value="hi">Hindi (हिन्दी)</option>
-                    </select>
-                </div>
-
-                <!-- User Registration Profile Email -->
-                <div class="setting-group" style="margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 15px;">User Login Email</label>
-                    <input type="email" id="settings-email" placeholder="name@example.com" 
-                           style="width: 100%; max-width: 500px; padding: 12px; background: rgba(26, 27, 38, 0.8); border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 14px;">
-                </div>
-
-                <!-- Workspace Verification Phone Number -->
-                <div class="setting-group" style="margin-bottom: 40px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 15px;">Workspace Phone Number</label>
-                    <input type="tel" id="settings-phone" placeholder="+91 XXXXX XXXXX" 
-                           style="width: 100%; max-width: 500px; padding: 12px; background: rgba(26, 27, 38, 0.8); border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 14px;">
-                </div>
-
-                <!-- Save Button -->
-                <button id="save-settings-btn" style="background: #0084ff; color: #fff; border: none; padding: 14px 28px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px;">
-                    Save Configurations
-                </button>
-                <span id="settings-status" style="margin-left: 15px; color: #4bb543; font-weight: 500; font-size: 14px;"></span>
+                <div id="image-output-container" style="margin-top:20px; display:flex; flex-direction:column; align-items:center; gap:15px;"></div>
             </div>
 
-            <!-- Sticky User Input Interface Layout -->
-            <section class="chat-input">
-                <div class="chat-input-wrapper">
-                    <input type="text" id="user-query" placeholder="Ask in English, Telugu, Hindi... or mix them naturally.">
-                    
-                    <!-- DYNAMIC EMOJI PICKER TOOLKIT CONTAINER -->
-                    <div id="emoji-dropdown-panel" class="emoji-dropdown">
-                        <div class="emoji-grid">
-                            <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
-                            <span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
-                            <span class="emoji-item" onclick="insertEmoji('🔥')">🔥</span>
-                            <span class="emoji-item" onclick="insertEmoji('✨')">✨</span>
-                            <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
-                            <span class="emoji-item" onclick="insertEmoji('🙏')">🙏</span>
-                            <span class="emoji-item" onclick="insertEmoji('🤔')">🤔</span>
-                            <span class="emoji-item" onclick="insertEmoji('😎')">😎</span>
-                            <span class="emoji-item" onclick="insertEmoji('💡')">💡</span>
-                            <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
-                            <span class="emoji-item" onclick="insertEmoji('💬')">💬</span>
-                            <span class="emoji-item" onclick="insertEmoji('🎉')">🎉</span>
-                            <span class="emoji-item" onclick="insertEmoji('💯')">💯</span>
-                            <span class="emoji-item" onclick="insertEmoji('❤️')">❤️</span>
-                        </div>
+            <!-- COLLABORATIVE CHATROOM PANEL -->
+            <div id="team-view" class="scrollable-center" style="display: none; padding: 20px;">
+                <h2>Workspace Team Core Channel</h2>
+                <div style="background: rgba(26,27,38,0.5); border: 1px solid #333; border-radius:12px; height: 360px; padding: 20px; display: flex; flex-direction: column; margin-top:20px;">
+                    <div id="team-log" style="flex:1; overflow-y:auto; color:#aaa; display:flex; flex-direction:column; gap:10px; font-size:13px;">
+                        <div><strong style="color: #3b82f6;">Shashi:</strong> UI is working now. Try the document compiler.</div>
+                        <div><strong style="color: #22c55e;">Balaji:</strong> Shared session is live. Let's test standard prompts.</div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <input type="text" id="team-input" placeholder="Ask a question everyone on the team can see..." style="flex: 1; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #333;">
+                        <button id="team-send-btn" style="background: #2563eb; color: white; border: none; padding: 0 20px; border-radius: 8px; cursor:pointer; font-weight:600;">Send</button>
                     </div>
                 </div>
-                <button id="emoji-btn" class="chat-action active" title="Insert Emoji" onclick="toggleEmojiDropdown()" style="font-size: 18px;">😊</button>
-                <button id="mic-btn" class="chat-action active" title="Voice Query">🎤</button>
-                <button id="send-btn" class="chat-action" title="Send">➜</button>
-            </section>
+            </div>
 
-        </main>
+            <!-- ENGINE PREFERENCES CONFIGURATION PANEL -->
+          <div id="settings-panel" class="scrollable-center" style="display: none; padding: 20px;">
+    <h2>Engine Settings / Shared Session Registry</h2>
+    <div style="margin-top:20px; background: rgba(255,255,255,0.02); padding:20px; border-radius:12px; border:1px solid #222;">
+        <label style="display:block; margin-bottom:8px; color:#ddd;">Active Team Identity Sessions (Separate names with commas)</label>
+        <input type="text" id="settings-email" placeholder="Om Abhinav,Shashi vardhan , balaji" style="width:100%; max-width:450px; padding:12px; background:#1a1b26; color:#fff; border:1px solid #333; border-radius:8px; outline:none; margin-bottom: 20px;">
+        <button id="save-settings-btn" style="background:#0084ff; color:#fff; border:none; padding:12px 24px; border-radius:8px; cursor:pointer; font-weight:600;">Save Group Configurations</button>
+        <div id="settings-status" style="margin-top:10px; color:#4bb543; font-weight:500;"></div>
     </div>
 
-    <!-- UI Interaction Helper Scripts for Emoji Dropdown Subsystem -->
-    <script>
-        function toggleEmojiDropdown() {
-            const dropdown = document.getElementById('emoji-dropdown-panel');
-            dropdown.classList.toggle('active');
-        }
+    <!-- FUTURE ROADMAP & IMPROVEMENTS PANEL SECTION -->
+    <div style="margin-top:30px; background: rgba(37, 99, 235, 0.05); padding:20px; border-radius:12px; border:1px solid #2563eb;">
+        <h3 style="color: #60a5fa; margin-bottom: 12px;">🚀 Future Implementation Roadmap</h3>
+        <ul style="color: #ccc; padding-left: 20px; line-height: 1.8; font-size: 13px;">
+            <li><strong>Global Overlay Injections:</strong> Launching the mini utility chat overlay window directly inside any native OS app via desktop keyboard short-key commands (`Ctrl+Shift+E`).</li>
+            <li><strong>Persistent Vector Context Memory:</strong> Integrating distributed vector database models to remember team interactions across browser sessions.</li>
+            <li><strong>OAuth Secure Team Login Gateways:</strong> Native active directory sign-ins for secure collaboration spaces.</li>
+        </ul>
+    </div>
+</div>
 
-        function insertEmoji(emoji) {
-            const inputField = document.getElementById('user-query');
-            inputField.value += emoji;
-            inputField.focus();
-            document.getElementById('emoji-dropdown-panel').classList.remove('active');
-        }
-
-        // Close dropdown when user clicks outside the interface frame area
-        document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('emoji-dropdown-panel');
-            const emojiBtn = document.getElementById('emoji-btn');
-            if (!dropdown.contains(event.target) && event.target !== emojiBtn) {
-                dropdown.classList.remove('active');
-            }
-        });
-    </script>
-
+            <!-- INPUT FOOTER PANEL CONTAINER -->
+            <section class="chat-input">
+                <div class="chat-input-wrapper">
+                    <input type="text" id="user-query" placeholder="Ask Naradha AI anything...">
+                    <div id="emoji-dropdown-panel" class="emoji-dropdown">
+                        <div class="emoji-grid">
+                            <span class="emoji-item" onclick="insertEmoji('😀')">😀</span><span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
+                            <span class="emoji-item" onclick="insertEmoji('🔥')">🔥</span><span class="emoji-item" onclick="insertEmoji('✨')">✨</span>
+                            <span class="emoji-item" onclick="insertEmoji('👍')">👍</span><span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="emoji-btn" class="chat-action active" onclick="toggleEmojiDropdown()">😊</button>
+                <button id="mic-btn" class="chat-action active">🎤</button>
+                <button id="send-btn" class="chat-action">➜</button>
+            </section>
+        </main>
+    </div>
     <script src="app.js"></script>
 </body>
 </html>
