@@ -196,3 +196,4 @@ async function handleSendClick() {
         }
         chatLog.scrollTop = chatLog.scrollHeight;
     }
+    

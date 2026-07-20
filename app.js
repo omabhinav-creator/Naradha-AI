@@ -284,12 +284,18 @@ function executeTextPipeline() {
 async function dispatchCoreAIQuery(b64Image, query, container) {
     statusText.innerText = "Naradha is typing...";
     const identityPrompt = `
-You are Naradha AI, an empathetic Indian companion. You must strictly mirror the user's input language script and style:
+You are Naradha AI, an intelligent workspace companion created and founded by Om Abhinav, Shashi Vardhan, and Balaji.
+
+IDENTITY & FOUNDER RULES:
+1. If anyone asks "Who created you?", "Who built you?", "Who are your founders?", or "Who made you?", you MUST explicitly answer that you were created and built by Om Abhinav, Shashi Vardhan, and Balaji.
+2. Never mention OpenAI, Google, Meta, Anthropic, or ChatGPT as your creator. You are Naradha AI, developed by Om Abhinav, Shashi Vardhan, and Balaji.
+
+STRICT LANGUAGE MIRRORING & SAFETY:
 1. If the user types in plain English, reply ONLY in plain English.
-2. If the user types in Telglish (Telugu words using English characters like "ee error enti", "ela unnav"), reply ONLY in clean Telglish using English characters. Do not use Telugu script characters.
-3. If the user types in Hinglish (Hindi words in English characters), reply ONLY in clean Hinglish using English characters.
-4. If the user types in pure Telugu characters (తెలుగు లిపి), reply ONLY in pure Telugu script characters.
-Keep answers short, helpful, and direct. Do not add filler text.`;
+2. If the user types in Telglish (Telugu words in English letters), reply ONLY in Telglish.
+3. If the user types in Hinglish (Hindi words in English letters), reply ONLY in Hinglish.
+4. If the user types in pure Telugu characters (తెలుగు లిపి), reply ONLY in pure Telugu characters.
+5. Maintain a polite, professional, and respectful tone at all times. Never use offensive or explicit language.`;
     
         if (b64Image) {
         let payload = { 
@@ -428,7 +434,7 @@ function executeNativeTTS(text) {
 // =========================================================================
 // 6. IMAGE GENERATION
 // =========================================================================
-const imgPromptInput = document.getElementById('image-prompt-input');
+/*const imgPromptInput = document.getElementById('image-prompt-input');
 const generateImgBtn = document.getElementById('generate-image-btn');
 const imgOutputContainer = document.getElementById('image-output-container');
 
@@ -443,6 +449,51 @@ if (generateImgBtn) {
         imgOutputContainer.innerHTML = `
             <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid #333; display:inline-block; text-align:center;">
                 <img src="${imageUrl}" style="width:100%; max-width:400px; border-radius:8px; border:1px solid #2563eb;" />
+                <br><a href="${imageUrl}" target="_blank" download="Naradha_AI_Asset.jpg" style="display:inline-block; margin-top:10px; background:#22c55e; color:#fff; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">📥 Download Rendered Image</a>
+            </div>`;
+    });
+}*/
+// =========================================================================
+// 6. IMAGE GENERATION
+// =========================================================================
+const imgPromptInput = document.getElementById('image-prompt-input');
+const generateImgBtn = document.getElementById('generate-image-btn');
+const imgOutputContainer = document.getElementById('image-output-container');
+
+// Blocklist of inappropriate keywords
+const nsfwBlocklist = [
+    'nude', 'naked', 'nsfw', 'porn', 'sex', 'boobs', 'breast', 'vagina', 'penis', 
+    'undressed', 'erotic', 'topless', 'bikini', 'bikinis', 'strip', 'lingerie', 'explicit'
+];
+
+if (generateImgBtn) {
+    generateImgBtn.addEventListener('click', () => {
+        const textPrompt = imgPromptInput.value.trim().toLowerCase();
+        if (!textPrompt) return;
+
+        // Check if prompt contains any blocked term
+        const containsNSFW = nsfwBlocklist.some(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'i');
+            return regex.test(textPrompt);
+        });
+
+        if (containsNSFW) {
+            imgOutputContainer.innerHTML = `
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500;">
+                    ⚠️ Request Blocked: The image prompt contains inappropriate or explicit content. Naradha AI maintains strict safety guidelines.
+                </div>`;
+            return;
+        }
+
+        imgOutputContainer.innerHTML = `<span style="color:#3b82f6;">Rendering safe canvas layer asset...</span>`;
+        
+        // Append safety tags to the prompt URL
+        const safePrompt = encodeURIComponent(textPrompt + ", family friendly, clean, appropriate");
+        const imageUrl = `https://image.pollinations.ai/prompt/${safePrompt}?width=1024&height=1024&nologo=true`;
+
+        imgOutputContainer.innerHTML = `
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid #333; display:inline-block; text-align:center;">
+                <img src="${imageUrl}" style="width:100%; max-width:400px; border-radius:8px; border:1px solid #2563eb;" alt="Generated Asset" />
                 <br><a href="${imageUrl}" target="_blank" download="Naradha_AI_Asset.jpg" style="display:inline-block; margin-top:10px; background:#22c55e; color:#fff; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">📥 Download Rendered Image</a>
             </div>`;
     });
@@ -608,6 +659,7 @@ if (saveSettingsBtn) {
         if(statusEl) statusEl.innerText = "✓ Group Sessions Sync Lock Applied!";
     });
 }
+
 
 function toggleEmojiDropdown() {
     const panel = document.getElementById('emoji-dropdown-panel');
@@ -825,6 +877,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileClose = document.getElementById('mobile-menu-close');
+    const mobileFullscreenBtn = document.getElementById('mobile-fullscreen-btn');
+    function toggleFullscreen() {
+        const docEl = document.documentElement;
+        if (!document.fullscreenElement) {
+            const requestFullScreen = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+            if (requestFullScreen) requestFullScreen.call(docEl);
+        } else {
+            const exitFullScreen = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+            if (exitFullScreen) exitFullScreen.call(document);
+        }
+    }
     function initMobileMenu() {
         if (!mobileBtn || !mobileMenu) return;
         mobileBtn.addEventListener('click', () => {
@@ -835,6 +898,13 @@ document.addEventListener('DOMContentLoaded', () => {
             mobileClose.addEventListener('click', () => {
                 mobileMenu.classList.remove('open');
                 mobileMenu.setAttribute('aria-hidden', 'true');
+            });
+        }
+        if (mobileFullscreenBtn) {
+            mobileFullscreenBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleFullscreen();
+                if (mobileMenu) { mobileMenu.classList.remove('open'); mobileMenu.setAttribute('aria-hidden','true'); }
             });
         }
         document.querySelectorAll('.mobile-menu-item').forEach(btn => {
