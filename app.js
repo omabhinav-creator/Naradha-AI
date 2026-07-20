@@ -4,6 +4,7 @@
 let screenStream = null;
 let miniModeActive = false;
 let isRecording = false;
+let lastUserLang = 'en-IN';
 
 // CLIENT-SIDE API KEYS
 const GEMINI_KEY = "AQ.Ab8RN6LC3RD1Dr_0CYBgiBnnRS8_X4hMF5tJan5RZdsiFWBSQA";
@@ -36,6 +37,108 @@ const mediaView = document.getElementById('media-view');
 const teamView = document.getElementById('team-view');
 const settingsPanel = document.getElementById('settings-panel');
 const chatInputSection = document.querySelector('.chat-input');
+
+// ===== Simple Login Modal Handling =====
+const loginModal = document.getElementById('login-modal');
+const googleLoginBtn = document.getElementById('google-login-btn');
+const guestLoginBtn = document.getElementById('login-guest-btn');
+
+function setUser(user) {
+    // user: { name, provider, email }
+    const normalized = Object.assign({ name: String(user.name || 'Guest'), provider: user.provider || 'guest', email: user.email || '' }, user);
+    localStorage.setItem('naradha_user', JSON.stringify(normalized));
+    hideLoginModal();
+    const titleEl = document.querySelector('#dashboard-header h1');
+    if (titleEl) titleEl.innerText = `Hello, ${normalized.name}`;
+    populateSettingsAccount();
+}
+
+function showLoginModal() { if (loginModal) loginModal.style.display = 'flex'; }
+function hideLoginModal() { if (loginModal) loginModal.style.display = 'none'; }
+
+if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Simulate Google sign-in and ask for a display name from the user
+        let displayName = null;
+        while (true) {
+            displayName = window.prompt('Enter a display name to use in Naradha AI (e.g., "Shashi Vardhan"):');
+            if (displayName === null) {
+                // user cancelled
+                return;
+            }
+            displayName = String(displayName).trim();
+            if (displayName.length === 0) {
+                alert('Display name is required. Please enter a name or cancel.');
+                continue;
+            }
+            break;
+        }
+        setUser({ name: displayName, provider: 'google', email: '' });
+    });
+}
+if (guestLoginBtn) {
+    guestLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        setUser({ name: 'Guest', provider: 'guest', email: '' });
+    });
+}
+
+// On load, require a simple login if no user stored
+document.addEventListener('DOMContentLoaded', () => {
+    const existing = localStorage.getItem('naradha_user');
+    if (existing) {
+        try {
+            const parsed = JSON.parse(existing);
+            const titleEl = document.querySelector('#dashboard-header h1');
+            if (titleEl) titleEl.innerText = `Hello, ${parsed.name}`;
+            hideLoginModal();
+        } catch (e) {
+            // fallback
+            const titleEl = document.querySelector('#dashboard-header h1');
+            if (titleEl) titleEl.innerText = `Hello, ${existing}`;
+            hideLoginModal();
+        }
+    } else {
+        showLoginModal();
+    }
+    populateSettingsAccount();
+});
+
+// Populate settings panel with account info and wire logout
+function populateSettingsAccount() {
+    const raw = localStorage.getItem('naradha_user');
+    const nameEl = document.getElementById('account-name');
+    const provEl = document.getElementById('account-provider');
+    const sidebarNameEl = document.getElementById('sidebar-account-name');
+    const logoutBtnEl = document.getElementById('logout-btn');
+    if (!raw) {
+        if (nameEl) nameEl.innerText = 'Not signed in';
+        if (provEl) provEl.innerText = '';
+        if (logoutBtnEl) logoutBtnEl.style.display = 'none';
+        if (sidebarNameEl) sidebarNameEl.innerText = 'Guest';
+        return;
+    }
+    try {
+        const user = JSON.parse(raw);
+        if (nameEl) nameEl.innerText = user.name || 'Guest';
+        if (provEl) provEl.innerText = user.provider ? `via ${user.provider}` : '';
+        if (sidebarNameEl) sidebarNameEl.innerText = user.name || 'Guest';
+        if (logoutBtnEl) {
+            logoutBtnEl.style.display = 'inline-block';
+            logoutBtnEl.onclick = () => {
+                localStorage.removeItem('naradha_user');
+                if (nameEl) nameEl.innerText = 'Not signed in';
+                if (provEl) provEl.innerText = '';
+                showLoginModal();
+            };
+        }
+    } catch (e) {
+        if (nameEl) nameEl.innerText = raw;
+        if (provEl) provEl.innerText = '';
+        if (sidebarNameEl) sidebarNameEl.innerText = raw;
+    }
+}
 
 function switchView(viewName) {
     dashboardHeader.style.display = 'none';
@@ -147,6 +250,15 @@ if(queryInput) queryInput.addEventListener('keydown', (e) => { if(e.key === 'Ent
 function executeTextPipeline() {
     const textVal = queryInput.value.trim();
     if (!textVal) return;
+
+    // Detect user input script to pick TTS language preference
+    if (/\p{Script=Devanagari}/u.test(textVal)) {
+        lastUserLang = 'hi-IN';
+    } else if (/[\u0C00-\u0C7F]/.test(textVal)) {
+        lastUserLang = 'te-IN';
+    } else {
+        lastUserLang = 'en-IN';
+    }
 
     statusText.innerText = "Snapping active workspace frame...";
     let b64FrameStr = "";
@@ -304,7 +416,12 @@ function executeNativeTTS(text) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text.replace(/[#*_\-:]/g, ' '));
-    utterance.lang = /[\u0C00-\u0C7F]/.test(text) ? "te-IN" : "en-IN";
+    // Prefer the user's last input language when deciding TTS language.
+    try {
+        utterance.lang = lastUserLang || (/[\u0C00-\u0C7F]/.test(text) ? 'te-IN' : (/\p{Script=Devanagari}/u.test(text) ? 'hi-IN' : 'en-IN'));
+    } catch (e) {
+        utterance.lang = (/[\u0C00-\u0C7F]/.test(text) ? 'te-IN' : 'en-IN');
+    }
     window.speechSynthesis.speak(utterance);
 }
 
@@ -678,3 +795,65 @@ async function dispatchOverlayQuery() {
 
     dispatchCoreAIQuery(b64FrameStr, text, logEl);
 }
+
+function logoutUser() {
+    localStorage.removeItem('naradha_user');
+    const titleEl = document.querySelector('#dashboard-header h1');
+    if (titleEl) titleEl.innerText = `Hello, I'm Naradha AI`;
+    populateSettingsAccount();
+    showLoginModal();
+}
+
+// Wire stop-voice button if present
+document.addEventListener('DOMContentLoaded', () => {
+    const stopBtn = document.getElementById('stop-voice-btn');
+    if (stopBtn) {
+        stopBtn.addEventListener('click', () => {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                if (statusText) statusText.innerText = 'Voice stopped';
+            }
+        });
+    }
+
+    // Ensure logout button references logoutUser (in case populateSettings didn't attach)
+    const logoutBtnEl = document.getElementById('logout-btn');
+    if (logoutBtnEl) {
+        logoutBtnEl.addEventListener('click', (e) => { e.preventDefault(); logoutUser(); });
+    }
+    // Mobile menu wiring only on small screens
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileClose = document.getElementById('mobile-menu-close');
+    function initMobileMenu() {
+        if (!mobileBtn || !mobileMenu) return;
+        mobileBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('open');
+            mobileMenu.setAttribute('aria-hidden', 'false');
+        });
+        if (mobileClose) {
+            mobileClose.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+                mobileMenu.setAttribute('aria-hidden', 'true');
+            });
+        }
+        document.querySelectorAll('.mobile-menu-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const view = btn.getAttribute('data-view');
+                if (view) switchView(view);
+                if (mobileMenu) { mobileMenu.classList.remove('open'); mobileMenu.setAttribute('aria-hidden','true'); }
+            });
+        });
+    }
+
+    function teardownMobileMenu() {
+        if (!mobileMenu) return;
+        mobileMenu.classList.remove('open');
+        mobileMenu.setAttribute('aria-hidden','true');
+    }
+
+    if (window.innerWidth <= 800) initMobileMenu(); else teardownMobileMenu();
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 800) initMobileMenu(); else teardownMobileMenu();
+    });
+});

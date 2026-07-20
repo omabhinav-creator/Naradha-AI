@@ -1426,3 +1426,65 @@ aside.sidebar nav button {
     padding: 12px 0 !important;
     width: 100% !important;
 }
+
+/* =========================
+   LOGIN MODAL
+   ========================= */
+#login-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9999}
+.login-card{background:linear-gradient(180deg,#0b1020,#0f1726);padding:28px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);width:92%;max-width:420px;color:#fff;text-align:center;box-shadow:0 20px 60px rgba(2,6,23,0.8)}
+.login-card h2{margin-bottom:8px;font-size:20px}
+.login-card .muted{color:#9aa7c4;font-size:13px;margin-bottom:18px}
+.login-actions{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.login-actions .primary{background:#fff;color:#0b1220;border:none;padding:12px 16px;border-radius:10px;font-weight:600;cursor:pointer}
+.login-actions .secondary{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:10px 14px;border-radius:10px;color:#fff;cursor:pointer}
+.login-card .small{font-size:11px;color:#7b8aa6;margin-top:6px}
+
+/* =========================
+   MOBILE RESPONSIVE TWEAKS
+   ========================= */
+@media (max-width: 800px) {
+    .sidebar { display: none !important; }
+    .app-container { flex-direction: column; }
+    .main-content { height: auto; }
+    /* leave space for fixed mobile hamburger/menu */
+    .scrollable-center { padding: 80px 16px 100px; }
+    .topbar { padding: 16px; }
+    .topbar h1 { font-size: 20px; }
+    .bottom-grid { grid-template-columns: 1fr !important; gap: 16px; }
+    .chat-input { padding: 12px; gap: 8px; }
+    .chat-input input { height:48px; padding: 0 12px; }
+    .chat-action { width:48px; height:48px; border-radius:10px; }
+    .docs-split-workspace { flex-direction: column !important; }
+
+    /* Mobile hamburger visible only on small screens */
+    .mobile-hamburger { display: inline-flex; align-items:center; justify-content:center; width:40px; height:40px; font-size:20px; background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.06); border-radius:8px; margin-right:12px; cursor:pointer; }
+    .topbar { gap: 12px; position: relative; }
+    .language-chip { display:none; }
+
+    /* Mobile slide-in menu */
+    .mobile-menu { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: #071025; border-right: 1px solid rgba(255,255,255,0.04); box-shadow: 6px 0 30px rgba(0,0,0,0.6); z-index: 10050; padding: 18px; display: flex; flex-direction: column; gap: 12px; transition: left 0.25s ease; }
+    .mobile-menu.open { left: 0; }
+    .mobile-menu-close { align-self: flex-end; background: transparent; border: none; color: #fff; font-size:20px; cursor:pointer; }
+    .mobile-menu-list { list-style:none; padding:0; margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+    .mobile-menu-item { background: transparent; border: none; color: #e6eefc; text-align: left; padding: 12px 10px; border-radius:8px; font-size:16px; cursor:pointer; }
+    .mobile-menu-item:hover { background: rgba(255,255,255,0.03); }
+}
+
+/* Hide hamburger on larger screens */
+.mobile-hamburger { display: none; }
+
+/* Position hamburger top-left on small screens */
+@media (max-width: 800px) {
+    .mobile-hamburger { display: inline-flex; position: fixed; left: 14px; top: 12px; margin-right: 0; z-index: 10010; }
+}
+
+/* Explicitly hide mobile menu/hamburger on larger screens */
+@media (min-width: 801px) {
+    .mobile-hamburger, #mobile-menu { display: none !important; }
+}
+
+@media (max-width: 420px) {
+    .login-card { padding: 18px; }
+    .hero h2 { font-size: 28px; }
+    .hero-description { font-size:16px; }
+}

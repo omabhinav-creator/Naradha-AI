@@ -30,11 +30,27 @@
     <div class="cosmic-dust"><div></div><div></div><div></div></div>
 
     <div id="app-viewport" class="app-container">
+        <!-- LOGIN / AUTH OVERLAY -->
+        <div id="login-modal" class="login-modal">
+            <div class="login-card">
+                <h2>Welcome to Naradha AI</h2>
+                <p class="muted">Sign in to save your chats and preferences.</p>
+                <div class="login-actions">
+                    <button id="google-login-btn" class="primary">Sign in with Google</button>
+                    <button id="login-guest-btn" class="secondary">Continue as Guest</button>
+                </div>
+                <p class="small">By continuing you agree to the terms.</p>
+            </div>
+        </div>
         <!-- Sidebar -->
         <aside class="sidebar" id="app-sidebar">
             <div class="logo">
                 <img src="Naradha AI Logo.png" alt="Logo">
                 <h2 class="sidebar-text">Naradha AI</h2>
+            </div>
+            <div id="sidebar-account" style="margin-bottom:18px;">
+                <div style="color:#94a3b8; font-size:12px;">Hello,</div>
+                <strong id="sidebar-account-name" style="color:#fff; display:block; margin-top:4px;">Guest</strong>
             </div>
             <nav>
                 <button id="nav-chat" class="menu-btn active">💬 <span class="sidebar-text">Chat Dashboard</span></button>
@@ -54,11 +70,26 @@
         <main class="main-content">
             <header id="dashboard-header" class="topbar">
                 <div>
-                    <h1>Hello, I'm Naradha AI</h1>
+                    <h1>Naradha AI</h1>
                     <p>Your AI. Your Language.</p>
                 </div>
                 <div class="language-chip">🌐 Auto Detect</div>
             </header>
+
+            <!-- Mobile menu button (moved outside header so it's available across views) -->
+            <button id="mobile-menu-btn" class="mobile-hamburger" aria-label="Open menu">☰</button>
+
+            <!-- Mobile slide-in menu -->
+            <nav id="mobile-menu" class="mobile-menu" aria-hidden="true">
+                <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu">✕</button>
+                <ul class="mobile-menu-list">
+                    <li><button class="mobile-menu-item" data-view="chat">💬 Chat Dashboard</button></li>
+                    <li><button class="mobile-menu-item" data-view="docs">📄 Documents</button></li>
+                    <li><button class="mobile-menu-item" data-view="media">🖼️ Image/Video Gen</button></li>
+                    <li><button class="mobile-menu-item" data-view="team">👥 Team Chat</button></li>
+                    <li><button class="mobile-menu-item" data-view="settings">⚙️ Settings</button></li>
+                </ul>
+            </nav>
 
             <!-- CHAT INTERFACE PANEL -->
             <!-- REPLACE EVERYTHING INSIDE #dashboard-view WITH THIS -->
@@ -104,7 +135,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h3>Naradha Insights Log</h3>
                     <!-- GLOBAL AUDIO MUTE BUTTON AT THE TOP -->
-                    <button onclick="window.speechSynthesis.cancel();" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">🔇 Stop Voice</button>
+                    <button id="stop-voice-btn" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">🔇 Stop Voice</button>
                 </div>
                 <p><strong>Status:</strong> <span id="status">Ready</span></p>
                 <div id="ai-response" style="height: 350px; overflow-y:auto; display:flex; flex-direction:column; padding: 5px;">
@@ -112,6 +143,52 @@
                 </div>
             </div>
         </section>
+    </div>
+    <!-- Detailed Future Improvements (Expanded Roadmap) -->
+    <div style="margin-top:18px; background: rgba(12,14,22,0.45); padding:18px; border-radius:12px; border:1px solid rgba(255,255,255,0.04); color:#dbeafe; font-size:13px; line-height:1.6;">
+        <h4 style="color:#60a5fa; margin-bottom:8px;">Here are <strong>10 high-impact future improvements</strong> you can present to judges or investors to show a visionary, scalable roadmap for Naradha AI:</h4>
+
+        <h5 style="margin-top:8px; color:#9fd0ff;">🚀 Technical &amp; Core AI Enhancements</h5>
+        <ol style="margin-left:18px; color:#cbd5e1;">
+            <li><strong>System-Wide Native OS Floating Overlay</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Expand beyond the Chrome Extension boundaries by packaging Naradha AI via Electron or Tauri. This allows the floating helper to overlay natively across any desktop application (VS Code, Android Studio, Zoom, PDFs) using global keyboard shortcuts (e.g., <code>Ctrl + Shift + N</code>).</div>
+            </li>
+            <li style="margin-top:8px;"><strong>Proactive "Fix-on-the-Fly" Visual Code Remediation</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Upgrade the screen analysis engine to automatically detect compiler errors, broken CSS layouts, or terminal exceptions on the screen without waiting for user prompts, proactively offering a one-click inline patch.</div>
+            </li>
+            <li style="margin-top:8px;"><strong>Expanded Vernacular Dialect &amp; Script Support</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Deepen the NLP pipeline to support more Indian regional languages and mixed scripts (such as Tanglish, Banglish, and Kannada/Malayalam variants) using specialized fine-tuned multilingual models to serve a broader user base across India.</div>
+            </li>
+            <li style="margin-top:8px;"><strong>Persistent Vector Memory for Workspace Context (Mem0 Integration)</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Implement a long-term vector memory layer so Naradha AI remembers project details, previous debugging sessions, team roles, and user coding styles across sessions without needing re-prompting.</div>
+            </li>
+        </ol>
+
+        <h5 style="margin-top:12px; color:#9fd0ff;">🛠️ Productivity &amp; Collaboration Features</h5>
+        <ol start="1" style="margin-left:18px; color:#cbd5e1;">
+            <li><strong>Real-Time WebRTC Peer-to-Peer Screen Sharing &amp; Pair Programming</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Fully integrate WebRTC channels into the Team Chat tab, enabling live screen sharing, synchronized cursor overlays, and AI-assisted pair-programming sessions for remote student teams.</div>
+            </li>
+            <li style="margin-top:8px;"><strong>Interactive Canvas &amp; Diagram Generator (Mermaid.js Engine)</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Add automated rendering for technical documentation—turning generated text into flowcharts, architecture diagrams, database schemas (ERD), and mind maps directly inside the Document Creation engine.</div>
+            </li>
+            <li style="margin-top:8px;"><strong>Voice-Driven Ambient Assistant Mode</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Introduce a hands-free ambient listening mode powered by low-latency Speech-to-Speech models, allowing developers to speak naturally with Naradha AI while actively typing code.</div>
+            </li>
+        </ol>
+
+        <h5 style="margin-top:12px; color:#9fd0ff;">🔒 Enterprise, Security &amp; Performance</h5>
+        <ol start="1" style="margin-left:18px; color:#cbd5e1;">
+            <li><strong>On-Device Local Model Execution (WebGPU / Ollama)</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Enable offline capabilities using quantized local models (like Llama-3-8B or Phi-3) running directly in the browser via WebGPU, providing ultra-fast response times and 100% data privacy.</div>
+            </li>
+            <li style="margin-top:8px;"><strong>IDE Plugin Ecosystem (VS Code &amp; JetBrains Extensions)</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Build official extension marketplace plugins that sync directly with the Naradha Chrome Extension, unifying web research with local code editing.</div>
+            </li>
+            <li style="margin-top:8px;"><strong>Granular Privacy &amp; Redaction Masks</strong>
+                <div style="color:#a8b9d6; margin-top:6px;">Integrate an automated client-side PII (Personally Identifiable Information) blur filter that automatically redacts sensitive data (API keys, passwords, personal emails) from screenshots before sending them to vision models.</div>
+            </li>
+        </ol>
     </div>
 </div>
             <!-- DOCUMENTS PANEL -->
@@ -177,6 +254,18 @@
         <div id="settings-status" style="margin-top:10px; color:#4bb543; font-weight:500;"></div>
     </div>
 
+    <!-- Account Info / Logout -->
+    <div style="margin-top:20px; background: rgba(255,255,255,0.02); padding:16px; border-radius:12px; border:1px solid #222; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; flex-direction:column;">
+            <span style="color:#ddd; font-size:13px;">Logged in as</span>
+            <strong id="account-name" style="color:#fff; margin-top:6px;">Guest</strong>
+            <span id="account-provider" style="color:#9aa7c4; font-size:12px; margin-top:6px;"></span>
+        </div>
+        <div>
+            <button id="logout-btn" style="background:transparent; border:1px solid rgba(255,255,255,0.08); color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer;">Logout</button>
+        </div>
+    </div>
+
     <!-- FUTURE ROADMAP & IMPROVEMENTS PANEL SECTION -->
     <div style="margin-top:30px; background: rgba(37, 99, 235, 0.05); padding:20px; border-radius:12px; border:1px solid #2563eb;">
         <h3 style="color: #60a5fa; margin-bottom: 12px;">🚀 Future Implementation Roadmap</h3>
@@ -186,6 +275,7 @@
             <li><strong>OAuth Secure Team Login Gateways:</strong> Native active directory sign-ins for secure collaboration spaces.</li>
         </ul>
     </div>
+    <div style="margin-top:18px; text-align:center; color:#9aa7c4; font-size:13px;">Created by team: Om Abhinav, Balaji, Shashi Vardhan</div>
 </div>
 
             <!-- INPUT FOOTER PANEL CONTAINER -->
@@ -202,7 +292,7 @@
                 </div>
                 <button id="emoji-btn" class="chat-action active" onclick="toggleEmojiDropdown()">😊</button>
                 <button id="mic-btn" class="chat-action active">🎤</button>
-                <button id="send-btn" class="chat-action">➜</button>
+                <button id="send-btn" class="chat-action active">➜</button>
             </section>
         </main>
     </div>
