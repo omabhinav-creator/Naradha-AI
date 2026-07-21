@@ -5,6 +5,10 @@ let screenStream = null;
 let miniModeActive = false;
 let isRecording = false;
 let lastUserLang = 'en-IN';
+let userSelectedLanguage = localStorage.getItem('naradha_language') || 'en';
+let bestFriendMode = localStorage.getItem('naradha_best_friend_mode') === 'true' || false;
+let voiceResponsesEnabled = localStorage.getItem('naradha_voice_enabled') !== 'false';
+let screenSyncActive = false;
 
 // CLIENT-SIDE API KEYS
 const GEMINI_KEY = "AQ.Ab8RN6LC3RD1Dr_0CYBgiBnnRS8_X4hMF5tJan5RZdsiFWBSQA";
@@ -43,50 +47,101 @@ const loginModal = document.getElementById('login-modal');
 const googleLoginBtn = document.getElementById('google-login-btn');
 const guestLoginBtn = document.getElementById('login-guest-btn');
 
+// =========================================================================
+// USERNAME & ACCOUNT STATE MANAGEMENT
+// =========================================================================
 function setUser(user) {
-    // user: { name, provider, email }
-    const normalized = Object.assign({ name: String(user.name || 'Guest'), provider: user.provider || 'guest', email: user.email || '' }, user);
+    const userName = (user && user.name && String(user.name).trim()) ? String(user.name).trim() : 'Guest';
+    const userLang = (user && user.language) ? user.language : 'en';
+
+    const normalized = { 
+        name: userName, 
+        provider: user.provider || 'guest', 
+        language: userLang 
+    };
+
     localStorage.setItem('naradha_user', JSON.stringify(normalized));
+    localStorage.setItem('naradha_language', normalized.language);
+    userSelectedLanguage = normalized.language;
+
     hideLoginModal();
-    const titleEl = document.querySelector('#dashboard-header h1');
-    if (titleEl) titleEl.innerText = `Hello, ${normalized.name}`;
-    populateSettingsAccount();
+    updateUIUserName(userName);
+}
+
+
+function updateUIUserName(name) {
+    // Finds the topbar <h1> even if id="user-greeting-title" is missing in index.html
+    const greetingTitle = document.getElementById('user-greeting-title') || document.querySelector('#dashboard-header h1');
+    const sidebarName = document.getElementById('sidebar-account-name');
+    const accountName = document.getElementById('account-name');
+
+    if (greetingTitle) greetingTitle.innerText = `Hello, ${name}`;
+    if (sidebarName) sidebarName.innerText = name;
+    if (accountName) accountName.innerText = name;
+}
+function populateSettingsAccount() {
+    const raw = localStorage.getItem('naradha_user');
+    if (!raw) {
+        updateUIUserName('Guest');
+        return;
+    }
+    try {
+        const user = JSON.parse(raw);
+        if (user && user.name) {
+            updateUIUserName(user.name);
+        } else {
+            updateUIUserName('Guest');
+        }
+    } catch(e) {
+        updateUIUserName('Guest');
+    }
 }
 
 function showLoginModal() { if (loginModal) loginModal.style.display = 'flex'; }
 function hideLoginModal() { if (loginModal) loginModal.style.display = 'none'; }
 
-if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        // Simulate Google sign-in and ask for a display name from the user
-        let displayName = null;
-        while (true) {
-            displayName = window.prompt('Enter a display name to use in Naradha AI (e.g., "Shashi Vardhan"):');
-            if (displayName === null) {
-                // user cancelled
-                return;
-            }
-            displayName = String(displayName).trim();
-            if (displayName.length === 0) {
-                alert('Display name is required. Please enter a name or cancel.');
-                continue;
-            }
-            break;
-        }
-        setUser({ name: displayName, provider: 'google', email: '' });
-    });
-}
-if (guestLoginBtn) {
-    guestLoginBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        setUser({ name: 'Guest', provider: 'guest', email: '' });
-    });
-}
-
-// On load, require a simple login if no user stored
+// Setup login buttons and initialization on page load
+// This handles: checking for existing user, setting up login buttons, and initializing settings
 document.addEventListener('DOMContentLoaded', () => {
+    const languageSelect = document.getElementById('language-select');
     const existing = localStorage.getItem('naradha_user');
+    const savedLanguage = localStorage.getItem('naradha_language') || 'en';
+    userSelectedLanguage = savedLanguage;
+    
+    // Setup login buttons
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Get the selected language from dropdown
+            const selectedLanguage = languageSelect ? languageSelect.value : 'en';
+            // Simulate Google sign-in and ask for a display name from the user
+            let displayName = null;
+            while (true) {
+                displayName = window.prompt('Enter a display name to use in Naradha AI (e.g., "Shashi Vardhan"):');
+                if (displayName === null) {
+                    // user cancelled
+                    return;
+                }
+                displayName = String(displayName).trim();
+                if (displayName.length === 0) {
+                    alert('Display name is required. Please enter a name or cancel.');
+                    continue;
+                }
+                break;
+            }
+            setUser({ name: displayName, provider: 'google', email: '', language: selectedLanguage });
+        });
+    }
+    
+    if (guestLoginBtn) {
+        guestLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const selectedLanguage = languageSelect ? languageSelect.value : 'en';
+            setUser({ name: 'Guest', provider: 'guest', email: '', language: selectedLanguage });
+        });
+    }
+    
+    // Check for existing user
     if (existing) {
         try {
             const parsed = JSON.parse(existing);
@@ -103,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoginModal();
     }
     populateSettingsAccount();
+    initializeSettingsPanel();
 });
 
 // Populate settings panel with account info and wire logout
@@ -176,6 +232,39 @@ if(navMedia) navMedia.addEventListener('click', () => switchView('media'));
 if(navTeam) navTeam.addEventListener('click', () => switchView('team'));
 if(navSettings) navSettings.addEventListener('click', () => switchView('settings'));
 
+// =========================================================================
+// INITIALIZE SETTINGS PANEL (Language, Best Friend Mode, Voice)
+// =========================================================================
+function initializeSettingsPanel() {
+    const settingsLanguageSelect = document.getElementById('settings-language-select');
+    const bestFriendToggle = document.getElementById('best-friend-mode-toggle');
+    const voiceToggle = document.getElementById('voice-responses-toggle');
+
+    if (settingsLanguageSelect) {
+        settingsLanguageSelect.value = userSelectedLanguage;
+        settingsLanguageSelect.addEventListener('change', (e) => {
+            userSelectedLanguage = e.target.value;
+            localStorage.setItem('naradha_language', userSelectedLanguage);
+        });
+    }
+
+    if (bestFriendToggle) {
+        bestFriendToggle.checked = bestFriendMode;
+        bestFriendToggle.addEventListener('change', (e) => {
+            bestFriendMode = e.target.checked;
+            localStorage.setItem('naradha_best_friend_mode', bestFriendMode);
+        });
+    }
+
+    if (voiceToggle) {
+        voiceToggle.checked = voiceResponsesEnabled;
+        voiceToggle.addEventListener('change', (e) => {
+            voiceResponsesEnabled = e.target.checked;
+            localStorage.setItem('naradha_voice_enabled', voiceResponsesEnabled);
+        });
+    }
+}
+
 // BREAKOUT LAUNCH WINDOW
 if (launchTabBtn) {
     launchTabBtn.addEventListener('click', () => {
@@ -225,16 +314,46 @@ if (toggleMiniBtn) {
 if (syncBtn) {
     syncBtn.addEventListener('click', async () => {
         try {
-            statusText.innerText = "Syncing display frame layer...";
-            screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-            if (videoElement) {
-                videoElement.srcObject = screenStream;
-                videoElement.style.display = 'block';
+            const screenSyncView = document.getElementById('screen-sync-view');
+            const mainChatGrid = document.getElementById('main-chat-grid');
+            
+            if (!screenSyncActive) {
+                statusText.innerText = "Syncing display frame layer...";
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+                if (videoElement) {
+                    videoElement.srcObject = screenStream;
+                    videoElement.style.display = 'block';
+                }
+                if(placeholder) placeholder.style.display = 'none';
+                statusText.innerText = "Context Online!";
+                if(captureBtn) captureBtn.disabled = false;
+                syncBtn.disabled = false;
+                syncBtn.style.opacity = "0.5";
+                
+                // Show screen sync view, hide main chat grid
+                if (screenSyncView) screenSyncView.style.display = 'grid';
+                if (mainChatGrid) mainChatGrid.style.display = 'none';
+                screenSyncActive = true;
+            } else {
+                // Stop screen sharing
+                if (screenStream) {
+                    screenStream.getTracks().forEach(track => track.stop());
+                    screenStream = null;
+                }
+                if (videoElement) {
+                    videoElement.srcObject = null;
+                    videoElement.style.display = 'none';
+                }
+                if(placeholder) placeholder.style.display = 'block';
+                statusText.innerText = "Ready";
+                syncBtn.disabled = false;
+                syncBtn.style.opacity = "1";
+                
+                // Show main chat grid, hide screen sync view
+                if (screenSyncView) screenSyncView.style.display = 'none';
+                if (mainChatGrid) mainChatGrid.style.display = 'grid';
+                screenSyncActive = false;
             }
-            if(placeholder) placeholder.style.display = 'none';
-            statusText.innerText = "Context Online!";
-            if(captureBtn) captureBtn.disabled = false;
-            syncBtn.disabled = true;
         } catch (e) {
             statusText.innerText = "Stream sync rejected.";
         }
@@ -242,7 +361,59 @@ if (syncBtn) {
 }
 
 // =========================================================================
-// 4. ON-DEMAND SCREEN RECOGNITION INFRASTRUCTURE (MAIN CHAT)
+// 4. MULTILINGUAL PROFANITY FILTER
+// =========================================================================
+const profanityFilter = {
+    telugu: ['lanje', 'lanja', 'dengu', 'dengutha', 'puku', 'puuuku', 'sulli', 'gudda', 'gullodu', 'dimmak'],
+    hindi: ['bulli', 'badakow', 'gandmasti', 'besharam', 'harami', 'besharami', 'chutiya'],
+    english: ['fuck', 'shit', 'damn', 'crap', 'hell', 'ass', 'bitch', 'bastard'],
+};
+
+function filterProfanity(text) {
+    let filtered = text;
+    
+    // Filter Telugu profanity
+    profanityFilter.telugu.forEach(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        filtered = filtered.replace(regex, '***');
+    });
+    
+    // Filter Hindi profanity
+    profanityFilter.hindi.forEach(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        filtered = filtered.replace(regex, '***');
+    });
+    
+    // Filter English profanity
+    profanityFilter.english.forEach(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        filtered = filtered.replace(regex, '***');
+    });
+    
+    return filtered;
+}
+
+// =========================================================================
+// 5. CODE & MATH FORMATTING HELPER
+// =========================================================================
+function formatCodeAndMath(text) {
+    // Handle mathematical symbols (e.g., 2 power 5 -> 2^5)
+    text = text.replace(/(\d+)\s+power\s+(\d+)/gi, '$1^$2');
+    text = text.replace(/(\d+)\s+squared/gi, '$1²');
+    text = text.replace(/(\d+)\s+cubed/gi, '$1³');
+    
+    // Format code blocks with proper indentation
+    text = text.replace(/```([a-z]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+        const lines = code.trim().split('\n');
+        const formatted = lines.map(line => `<span class="code-line">${line.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`).join('<br>');
+        return `<div class="code-block" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; border-left: 3px solid #2563eb; font-family: 'Courier New', monospace; overflow-x: auto;">${formatted}</div>`;
+    });
+    
+    return text;
+}
+
+// =========================================================================
+// 5. ON-DEMAND SCREEN RECOGNITION INFRASTRUCTURE (MAIN CHAT)
 // =========================================================================
 if(sendBtn) sendBtn.addEventListener('click', () => executeTextPipeline());
 if(queryInput) queryInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); executeTextPipeline(); } });
@@ -259,8 +430,19 @@ function executeTextPipeline() {
     } else {
         lastUserLang = 'en-IN';
     }
+    queryInput.value = "";
 
-    statusText.innerText = "Snapping active workspace frame...";
+    // RESET BUTTON BACK TO MIC AFTER SENDING
+    if (micBtn && sendBtn) {
+        micBtn.style.setProperty('display', 'flex', 'important');
+        sendBtn.style.setProperty('display', 'none', 'important');
+    }
+
+    // Determine which container to use
+    const responseContainer = screenSyncActive ? document.getElementById('ai-response') : document.getElementById('ai-response-chat');
+    const statusElement = screenSyncActive ? document.getElementById('status') : document.getElementById('status-chat');
+    
+    if (statusElement) statusElement.innerText = "Snapping active workspace frame...";
     let b64FrameStr = "";
 
     if (screenStream && videoElement && videoElement.videoWidth > 0) {
@@ -271,33 +453,66 @@ function executeTextPipeline() {
         b64FrameStr = canvas.toDataURL("image/jpeg", 0.3).split(",")[1];
     }
 
-    aiResponseContainer.innerHTML += `
-        <div class="chat-msg-row">
-            <div class="user-bubble"><strong>You:</strong> ${textVal}</div>
-        </div>`;
-    aiResponseContainer.scrollTop = aiResponseContainer.scrollHeight;
+    if (responseContainer) {
+        responseContainer.innerHTML += `
+            <div class="chat-msg-row">
+                <div class="user-bubble"><strong>You:</strong> ${textVal}</div>
+            </div>`;
+        responseContainer.scrollTop = responseContainer.scrollHeight;
+    }
     queryInput.value = "";
 
-    dispatchCoreAIQuery(b64FrameStr, textVal, aiResponseContainer);
+    dispatchCoreAIQuery(b64FrameStr, textVal, responseContainer, statusElement);
 }
 
-async function dispatchCoreAIQuery(b64Image, query, container) {
-    statusText.innerText = "Naradha is typing...";
-    const identityPrompt = `
+function getLanguageName(langCode) {
+    const languages = {
+        'en': 'English',
+        'te': 'pure Telugu script (తెలుగు లిపి)',
+        'te-roman': 'Telglish (Telugu words using ONLY English/Roman letters)',
+        'hi': 'pure Hindi script (हिन्दी)',
+        'hi-roman': 'Hinglish (Hindi words using ONLY English/Roman letters)'
+    };
+    return languages[langCode] || 'English';
+}
+
+async function dispatchCoreAIQuery(b64Image, query, container, statusElement) {
+    if (statusElement) statusElement.innerText = "Naradha is typing...";
+
+    const targetLanguage = getLanguageName(userSelectedLanguage);
+
+    let identityPrompt = `
 You are Naradha AI, an intelligent workspace companion created and founded by Om Abhinav, Shashi Vardhan, and Balaji.
 
 IDENTITY & FOUNDER RULES:
 1. If anyone asks "Who created you?", "Who built you?", "Who are your founders?", or "Who made you?", you MUST explicitly answer that you were created and built by Om Abhinav, Shashi Vardhan, and Balaji.
-2. Never mention OpenAI, Google, Meta, Anthropic, or ChatGPT as your creator. You are Naradha AI, developed by Om Abhinav, Shashi Vardhan, and Balaji.
+2. Never mention OpenAI, Google, Meta, Anthropic, or ChatGPT as your creator. You are Naradha AI, developed by Team AI-SAGA by Om Abhinav, Shashi Vardhan, and Balaji.
 
-STRICT LANGUAGE MIRRORING & SAFETY:
-1. If the user types in plain English, reply ONLY in plain English.
-2. If the user types in Telglish (Telugu words in English letters), reply ONLY in Telglish.
-3. If the user types in Hinglish (Hindi words in English letters), reply ONLY in Hinglish.
-4. If the user types in pure Telugu characters (తెలుగు లిపి), reply ONLY in pure Telugu characters.
-5. Maintain a polite, professional, and respectful tone at all times. Never use offensive or explicit language.`;
-    
-        if (b64Image) {
+CRITICAL LANGUAGE SCRIPT RULE:
+- Primary language mode: ${targetLanguage}
+${userSelectedLanguage === 'te-roman' ? 'CRITICAL: You MUST write Telugu words using ONLY English/Roman alphabet letters (Telglish). NEVER use Telugu characters (తెలుగు లిపి) under any circumstances! Example: "Namasthay Om Abhinav! Ela unnavu?"' : ''}
+${userSelectedLanguage === 'hi-roman' ? 'CRITICAL: You MUST write Hindi words using ONLY English/Roman alphabet letters (Hinglish). NEVER use Devanagari script (हिन्दी) under any circumstances! Example: "Namaste! Aap kaise ho?"' : ''}
+${userSelectedLanguage === 'te' ? 'CRITICAL: You MUST write strictly in pure Telugu script (తెలుగు లిపి).' : ''}
+${userSelectedLanguage === 'hi' ? 'CRITICAL: You MUST write strictly in pure Hindi script (हिन्दी).' : ''}
+
+STRICT BREVITY & RESPONSE RULES:
+1. Keep replies SHORT, SIMPLE, and DIRECT.
+2. If user asks for code, provide ONLY ONE minimal, clean code block. Do NOT generate multiple projects, long explanations, or unnecessary extra examples unless asked.
+
+SPECIAL FEATURE - BHAGAVAD GITA MOTIVATION:
+- If the user mentions "motivate", "motivation", or shares a stressful/difficult situation asking for advice:
+  1. Share one highly relevant Bhagavad Gita Sloka (Sanskrit with Roman transliteration).
+  2. Explain its meaning briefly in ${targetLanguage}.
+  3. Offer a short, practical word of encouragement based on the sloka.
+
+PERSONALITY MODE:
+${bestFriendMode ? "MODE: BEST FRIEND. Talk like a supportive best friend with casual warmth, encouragement, and light humor." : "MODE: ASSISTANT. Be concise, direct, and professional."}
+
+ABSOLUTELY NO PROFANITY:
+- NEVER use any offensive, vulgar, or inappropriate language in any language.
+- Replace any accidentally generated bad words with ***.`;
+
+    if (b64Image) {
         let payload = { 
             contents: [{ 
                 parts: [
@@ -311,35 +526,15 @@ STRICT LANGUAGE MIRRORING & SAFETY:
             const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
             const data = await response.json();
             if (data.error) throw new Error(data.error.message);
-            renderResponse(data.candidates[0].content.parts[0].text, container);
+            renderResponse(data.candidates[0].content.parts[0].text, container, statusElement);
         } catch (e) {
-            // HACKATHON PARTNER ALCHEMYST AI INTEGRATION REPLICATOR FALLBACK
-            try {
-                const response = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: [
-                            { role: "system", content: identityPrompt + " [Partner Route: Alchemyst Vision Core]" },
-                            { role: "user", content: [
-                                { type: "text", text: `Screen Analysis: ${query}` },
-                                { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64Image}` } }
-                            ]}
-                        ]
-                    })
-                });
-                const fallbackText = await response.text();
-                renderResponse(fallbackText, container);
-            } catch(fallbackErr) {
-                dispatchGroqFallback(query, container, identityPrompt);
-            }
+            dispatchGroqFallback(query, container, identityPrompt, statusElement);
         }
     } else {
-        dispatchGroqFallback(query, container, identityPrompt);
+        dispatchGroqFallback(query, container, identityPrompt, statusElement);
     }
 }
-
-async function dispatchGroqFallback(query, container, identityPrompt) {
+async function dispatchGroqFallback(query, container, identityPrompt, statusElement) {
     try {
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
@@ -351,7 +546,7 @@ async function dispatchGroqFallback(query, container, identityPrompt) {
         });
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
-        renderResponse(data.choices[0].message.content, container);
+        renderResponse(data.choices[0].message.content, container, statusElement);
     } catch(err) {
         try {
             const res = await fetch("https://text.pollinations.ai/", { 
@@ -360,27 +555,40 @@ async function dispatchGroqFallback(query, container, identityPrompt) {
                 body: JSON.stringify({ messages: [{ role: "system", content: identityPrompt }, { role: "user", content: query }] }) 
             });
             const text = await res.text();
-            renderResponse(text, container);
+            renderResponse(text, container, statusElement);
         } catch(finalErr) {
-            renderResponse("Network error encountered. Please try again.", container);
+            renderResponse("Network error encountered. Please try again.", container, statusElement);
         }
     }
 }
 
-function renderResponse(aiReply, container) {
-    container.innerHTML += `
-        <div class="chat-msg-row">
-            <div class="ai-bubble">
-                <strong>Naradha AI:</strong><br>${aiReply.replace(/\n/g, '<br>')}
-            </div>
-        </div>`;
-    container.scrollTop = container.scrollHeight;
-    statusText.innerText = "Done!";
-    executeNativeTTS(aiReply);
+function renderResponse(aiReply, container, statusElement) {
+    // Filter profanity from AI response
+    let filteredReply = filterProfanity(aiReply);
+    
+    // Format code blocks and mathematical expressions
+    let formattedReply = formatCodeAndMath(filteredReply);
+    
+    if (container) {
+        container.innerHTML += `
+            <div class="chat-msg-row">
+                <div class="ai-bubble">
+                    <strong>Naradha AI:</strong><br>${formattedReply.replace(/\n/g, '<br>')}
+                </div>
+            </div>`;
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    if (statusElement) statusElement.innerText = "Done!";
+    
+    // Only speak if voice responses are enabled
+    if (voiceResponsesEnabled) {
+        executeNativeTTS(filteredReply);
+    }
 }
 
 // =========================================================================
-// 5. GNANI AI AUDIO PIPELINE INTEGRATION SUBSTRATE
+// 5.5 SPEECH RECOGNITION (MICROPHONE INPUT)
 // =========================================================================
 if (micBtn) {
     let recognition = null;
@@ -393,11 +601,36 @@ if (micBtn) {
         }
 
         recognition = new webkitSpeechRecognition();
-        recognition.lang = "te-IN"; 
+        
+        // Set recognition language based on user selection
+        let speechLang = 'en-IN';
+        switch(userSelectedLanguage) {
+            case 'te':
+                speechLang = 'te-IN';
+                break;
+            case 'te-roman':
+                speechLang = 'en-IN'; // Romanized Telugu uses English recognition
+                break;
+            case 'hi':
+                speechLang = 'hi-IN';
+                break;
+            case 'hi-roman':
+                speechLang = 'en-IN'; // Romanized Hindi uses English recognition
+                break;
+            default:
+                speechLang = 'en-IN';
+        }
+        
+        recognition.lang = speechLang;
         recognition.continuous = true;
         recognition.interimResults = true;
 
-        recognition.onstart = () => { isRecording = true; statusText.innerText = "Listening..."; micBtn.innerText = "🛑"; };
+        recognition.onstart = () => { 
+            isRecording = true; 
+            const statusEl = screenSyncActive ? document.getElementById('status') : document.getElementById('status-chat');
+            if (statusEl) statusEl.innerText = "Listening..."; 
+            micBtn.innerText = "🛑"; 
+        };
         
         recognition.onresult = (e) => {
             let interimTranscript = '';
@@ -413,50 +646,162 @@ if (micBtn) {
             }
         };
 
-        recognition.onend = () => { isRecording = false; micBtn.innerText = "🎤"; executeTextPipeline(); };
+        recognition.onend = () => { 
+            isRecording = false; 
+            micBtn.innerText = "🎤"; 
+            executeTextPipeline(); 
+        };
+        
+        recognition.onerror = (e) => {
+            isRecording = false;
+            micBtn.innerText = "🎤";
+            const statusEl = screenSyncActive ? document.getElementById('status') : document.getElementById('status-chat');
+            if (statusEl) statusEl.innerText = "Speech recognition error";
+        };
+        
         recognition.start();
     });
 }
 
-function executeNativeTTS(text) {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text.replace(/[#*_\-:]/g, ' '));
-    // Prefer the user's last input language when deciding TTS language.
-    try {
-        utterance.lang = lastUserLang || (/[\u0C00-\u0C7F]/.test(text) ? 'te-IN' : (/\p{Script=Devanagari}/u.test(text) ? 'hi-IN' : 'en-IN'));
-    } catch (e) {
-        utterance.lang = (/[\u0C00-\u0C7F]/.test(text) ? 'te-IN' : 'en-IN');
+function stopAllSpeech() {
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume(); // Unlocks browser speech queue
     }
-    window.speechSynthesis.speak(utterance);
 }
 
+function executeNativeTTS(text) {
+    if (!voiceResponsesEnabled || !window.speechSynthesis) return;
+
+    window.speechSynthesis.resume();
+    window.speechSynthesis.cancel(); // Clear queue
+
+    // Clean text: Strip code blocks, emojis, and symbols so TTS reads clean prose
+    let cleanText = text
+        .replace(/```[\s\S]*?```/g, ' Code example provided on screen. ') // Skip code execution
+        .replace(/[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+        .replace(/[#*_\-:`]/g, ' ')
+        .trim();
+
+    if (!cleanText) return;
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    // Map language phonetics
+    let targetLangCode = 'en-IN';
+    if (userSelectedLanguage === 'te' || userSelectedLanguage === 'te-roman') {
+        targetLangCode = 'te-IN';
+    } else if (userSelectedLanguage === 'hi' || userSelectedLanguage === 'hi-roman') {
+        targetLangCode = 'hi-IN';
+    }
+
+    utterance.lang = targetLangCode;
+    utterance.rate = 0.95;
+
+    // Set native voice if available
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        const matched = voices.find(v => v.lang.includes(targetLangCode) || v.lang.startsWith(targetLangCode.split('-')[0]));
+        if (matched) utterance.voice = matched;
+    }
+
+    setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+    }, 50);
+}
 // =========================================================================
-// 6. IMAGE GENERATION
+// 6. FILE UPLOAD HANDLING (PDF & Images)
 // =========================================================================
-/*const imgPromptInput = document.getElementById('image-prompt-input');
+let uploadedFileData = null;
+
+const fileUploadBtn = document.getElementById('file-upload-btn');
+const fileInput = document.getElementById('file-input');
+
+if (fileUploadBtn && fileInput) {
+    fileUploadBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const isImage = file.type.startsWith('image/');
+        const isPdf = file.type === 'application/pdf';
+        
+        if (!isImage && !isPdf) {
+            alert('Please select a valid PDF or image file');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            uploadedFileData = {
+                name: file.name,
+                type: file.type,
+                data: event.target.result
+            };
+            
+            // Auto-append file name to query for context
+            const fileName = file.name.split('.')[0];
+            queryInput.value = `Analyze and explain the content of: ${fileName}`;
+            queryInput.focus();
+        };
+        
+        reader.readAsDataURL(file);
+    });
+}
+    
+// =========================================================================
+// 7. IMAGE GENERATION
+// =========================================================================
+// =========================================================================
+// 7. IMAGE GENERATION (UPDATED WITH ISOLATED SUBJECT PROMPTING)
+// =========================================================================
+const imgPromptInput = document.getElementById('image-prompt-input');
 const generateImgBtn = document.getElementById('generate-image-btn');
 const imgOutputContainer = document.getElementById('image-output-container');
+
+// Blocklist of inappropriate keywords
+const nsfwBlocklist = [
+    'nude', 'naked', 'nsfw', 'porn', 'sex', 'boobs', 'breast', 'vagina', 'penis', 
+    'undressed', 'erotic', 'topless', 'bikini', 'bikinis', 'strip', 'lingerie', 'explicit'
+];
 
 if (generateImgBtn) {
     generateImgBtn.addEventListener('click', () => {
         const textPrompt = imgPromptInput.value.trim();
         if (!textPrompt) return;
-        imgOutputContainer.innerHTML = `<span style="color:#3b82f6;">Rendering canvas layer asset...</span>`;
-        const encoded = encodeURIComponent(textPrompt);
-        const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true`;
-        
+
+        // Moderate prompt for bad/sexual content
+        const containsNSFW = nsfwBlocklist.some(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'i');
+            return regex.test(textPrompt.toLowerCase());
+        });
+
+        if (containsNSFW) {
+            imgOutputContainer.innerHTML = `
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500;">
+                    ⚠️ Request Blocked: The image prompt contains inappropriate or explicit content.
+                </div>`;
+            return;
+        }
+
+        imgOutputContainer.innerHTML = `<span style="color:#3b82f6;">Rendering clean canvas layer asset...</span>`;
+
+        // NEW METHOD: Added "single subject" modifier to stop generating extra figures/children
+        const cleanPrompt = encodeURIComponent(`${textPrompt.toLowerCase()}, single subject, cinematic lighting, sharp focus, highly detailed, 8k resolution`);
+        const randomSeed = Math.floor(Math.random() * 999999);
+        const imageUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=1024&height=1024&model=flux&seed=${randomSeed}&nologo=true`;
+
         imgOutputContainer.innerHTML = `
             <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid #333; display:inline-block; text-align:center;">
-                <img src="${imageUrl}" style="width:100%; max-width:400px; border-radius:8px; border:1px solid #2563eb;" />
+                <img src="${imageUrl}" style="width:100%; max-width:400px; border-radius:8px; border:1px solid #2563eb;" alt="Generated Asset" />
                 <br><a href="${imageUrl}" target="_blank" download="Naradha_AI_Asset.jpg" style="display:inline-block; margin-top:10px; background:#22c55e; color:#fff; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">📥 Download Rendered Image</a>
             </div>`;
     });
-}*/
-// =========================================================================
-// 6. IMAGE GENERATION
-// =========================================================================
-const imgPromptInput = document.getElementById('image-prompt-input');
+}
+/*const imgPromptInput = document.getElementById('image-prompt-input');
 const generateImgBtn = document.getElementById('generate-image-btn');
 const imgOutputContainer = document.getElementById('image-output-container');
 
@@ -497,8 +842,11 @@ if (generateImgBtn) {
                 <br><a href="${imageUrl}" target="_blank" download="Naradha_AI_Asset.jpg" style="display:inline-block; margin-top:10px; background:#22c55e; color:#fff; text-decoration:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">📥 Download Rendered Image</a>
             </div>`;
     });
-}
+}*/
 
+// =========================================================================
+// 7. DOCUMENT CREATION & EXPORT
+// =========================================================================
 // =========================================================================
 // 7. DOCUMENT CREATION & EXPORT
 // =========================================================================
@@ -515,22 +863,29 @@ if (generateDocBtn) {
         if (!userNotes) return;
         docOutputEditor.innerHTML = "Compiling technical sandbox templates...";
         
-        const contentPrompt = `You are an expert technical documentation draft writer. Write a comprehensive, extremely detailed, structured document profile layout about the exact topic: "${userNotes}". Group everything into clean semantic sections with visible sub-headings and structured bullet formatting parameters. Return only raw web HTML layout code strings. Do not output markdown code blocks or backtick indicators.`;
+        const contentPrompt = `You are an expert technical documentation draft writer. Write a comprehensive, extremely detailed, structured document profile layout about the exact topic: "${userNotes}". Group everything into clean semantic HTML sections with visible sub-headings (<h3>) and structured bullet formatting parameters. Return only raw web HTML layout code strings without backticks or markdown wrappers.`;
 
         try {
-            const res = await fetch("https://text.pollinations.ai/", {
+            // FIXED: Using Groq API instead of Pollinations to prevent 402 Payment Required errors
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: [{ role: "user", content: contentPrompt }], model: "openai" })
+                headers: { 
+                    "Authorization": `Bearer ${GROQ_KEY}`, 
+                    "Content-Type": "application/json" 
+                },
+                body: JSON.stringify({
+                    model: "llama-3.1-8b-instant",
+                    messages: [{ role: "user", content: contentPrompt }]
+                })
             });
-            const outText = await res.text();
+            const data = await res.json();
+            const outText = data.choices[0].message.content;
             docOutputEditor.innerHTML = outText.replace(/```html/gi, "").replace(/```/g, "");
         } catch (e) {
             docOutputEditor.innerHTML = `<h3>Generated Layout Profile</h3><p>${userNotes}</p>`;
         }
     };
 }
-
 if (downloadPdfBtn) {
     downloadPdfBtn.addEventListener('click', () => {
         const iframe = document.createElement('iframe');
@@ -856,17 +1211,43 @@ function logoutUser() {
     showLoginModal();
 }
 
-// Wire stop-voice button if present
+// Wire stop-voice buttons if present
 document.addEventListener('DOMContentLoaded', () => {
+    // Stop voice button for screen sync view
+    // Stop voice button for screen sync view
     const stopBtn = document.getElementById('stop-voice-btn');
     if (stopBtn) {
         stopBtn.addEventListener('click', () => {
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-                if (statusText) statusText.innerText = 'Voice stopped';
+            if (window.currentAudio) {
+                window.currentAudio.pause();
+                window.currentAudio = null;
             }
+            if (window.speechSynthesis) {
+                window.speechSynthesis.pause();
+                window.speechSynthesis.cancel();
+            }
+            const statusEl = document.getElementById('status');
+            if (statusEl) statusEl.innerText = 'Voice stopped';
         });
     }
+
+    // Stop voice button for chat view
+    const stopBtnChat = document.getElementById('stop-voice-btn-chat');
+    if (stopBtnChat) {
+        stopBtnChat.addEventListener('click', () => {
+            if (window.currentAudio) {
+                window.currentAudio.pause();
+                window.currentAudio = null;
+            }
+            if (window.speechSynthesis) {
+                window.speechSynthesis.pause();
+                window.speechSynthesis.cancel();
+            }
+            const statusEl = document.getElementById('status-chat');
+            if (statusEl) statusEl.innerText = 'Voice stopped';
+        });
+    }
+    
 
     // Ensure logout button references logoutUser (in case populateSettings didn't attach)
     const logoutBtnEl = document.getElementById('logout-btn');
@@ -927,3 +1308,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.innerWidth <= 800) initMobileMenu(); else teardownMobileMenu();
     });
 });
+// =========================================================================
+// WHATSAPP-STYLE MIC / SEND BUTTON TOGGLE
+// =========================================================================
+// WHATSAPP-STYLE MIC / SEND BUTTON TOGGLE
+if (queryInput && micBtn && sendBtn) {
+    const updateButtonVisibility = () => {
+        const hasText = queryInput.value.trim().length > 0;
+        if (hasText) {
+            micBtn.style.setProperty('display', 'none', 'important');
+            sendBtn.style.setProperty('display', 'flex', 'important');
+        } else {
+            micBtn.style.setProperty('display', 'flex', 'important');
+            sendBtn.style.setProperty('display', 'none', 'important');
+        }
+    };
+
+    queryInput.addEventListener('input', updateButtonVisibility);
+    
+    // Run immediately on page load to hide send button by default
+    updateButtonVisibility();
+}

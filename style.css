@@ -644,76 +644,208 @@ animation:statusBlink 2s infinite;
    CHAT BUTTONS
 =========================== */
 
-.chat-action{
-    width:60px;
-    height:60px;
+/* =========================================================================
+   UI REFINEMENTS (PC & MOBILE)
+   ========================================================================= */
 
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    border:none;
-    border-radius:18px;
-
-    cursor:pointer;
-    transition:all .25s ease;
-
-    flex-shrink:0;
-
-    opacity:0;
-    visibility:hidden;
-    transform:scale(.8);
+/* 1. Standardize Attachment & Emoji buttons to match Mic style (transparent/dark theme) */
+/* =========================================================================
+   FOOTER CHAT INPUT HORIZONTAL ROW FIX
+   ========================================================================= */
+.chat-input {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px 16px !important;
+    background: #090a12 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.chat-action.active{
-    opacity:1;
-    visibility:visible;
-    transform:scale(1);
+.chat-input-wrapper {
+    position: relative !important;
+    flex: 1 !important; /* Expands to fill available middle space */
+    display: flex !important;
+    align-items: center !important;
 }
 
-/* Mic Button */
-
-#mic-btn{
-    background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.12);
-    font-size:24px;
+.chat-input-wrapper input#user-query {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    background: #111827 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 10px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    outline: none !important;
 }
 
-#mic-btn:hover{
-    background:rgba(255,255,255,.15);
+/* Force action buttons to stay fixed-size and not shrink or wrap */
+.chat-action {
+    flex-shrink: 0 !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-/* Send Button */
-
-#send-btn{
-    background:#2563eb;
-    font-size:24px;
+#send-btn {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
 }
 
-#send-btn:hover{
-    background:#3b82f6;
+/* Mobile responsive padding adjust */
+/* =========================================================================
+   FIXED MOBILE VIEWPORT & ANCHORED FOOTER
+   ========================================================================= */
+@media screen and (max-width: 800px) {
+    /* Lock the body and main viewport so the outer page cannot scroll */
+    html, body, .app-container, .main-content {
+        height: 100% !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        position: relative !important;
+    }
+
+    /* Fixed top header */
+#dashboard-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 60px !important;
+        background: #090c1e !important; /* Solid cosmic background */
+        border-bottom: 1px solid rgba(37, 99, 235, 0.25) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 15px 0 50px !important;
+        z-index: 99998 !important;
+    }
+
+    /* Chat view fits perfectly between header (60px) and footer (65px) */
+    #dashboard-view {
+        height: calc(100vh - 125px) !important;
+        margin-top: 60px !important;
+        padding-top: 0 !important;
+        overflow-y: auto !important;
+    }
+
+    /* Strictly anchor chat input footer to screen bottom */
+    .chat-input {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 65px !important;
+        background: #090a12 !important;
+        padding: 10px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        z-index: 99999 !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
 }
+/* 2. Hide redundant bottom bar in PC mode */
+@media screen and (min-width: 801px) {
+    /* Pull topbar directly to the top edge */
+    #dashboard-header {
+        margin-top: 0 !important;
+        padding-top: 10px !important;
+        padding-bottom: 5px !important;
+    }
 
-.chat-input{
-    position: sticky;
-    bottom: 0;
+    .main-content {
+        padding-top: 10px !important;
+    }
 
-    width: 100%;
-
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    padding: 20px;
-
-    background: rgba(2,6,23,.90);
-    backdrop-filter: blur(18px);
-
-    border-top: 1px solid rgba(255,255,255,.08);
-
-    z-index: 100;
+    #dashboard-view {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    
+    /* Reduce top hero orbit spacing */
+    .hero {
+        padding-top: 10px !important;
+        margin-top: 0 !important;
+    }
 }
+    /* Hide duplicate header if appended near bottom */
+    body > #dashboard-header,
+    .main-content > #dashboard-header:nth-of-type(2) {
+        display: none !important;
+    }
 
+    /* Reduce top gap for Hello, Abhinav on PC */
+    #dashboard-header {
+        margin-top: 0 !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+    
+    .scrollable-center {
+        padding-top: 5px !important;
+    }
+
+
+/* 3. Mobile Phone Optimizations (Fixed Viewport & Dark Blue/Black Cosmic Combo Header) */
+@media screen and (max-width: 800px) {
+    /* Dark Blue / Pitch Black Deep Space Gradient Header */
+    #dashboard-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 60px !important;
+        background: linear-gradient(180deg, #070913 0%, #0c1022 100%) !important;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.2) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 15px 0 50px !important;
+        z-index: 99998 !important;
+    }
+
+    /* Fixed Layout so main chat remains anchored without awkward page scrolling */
+    html, body, .app-container, .main-content {
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    #dashboard-view {
+        height: calc(100vh - 125px) !important;
+        overflow-y: auto !important;
+        padding-top: 65px !important;
+    }
+
+    .chat-input {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        background: #090a12 !important;
+        padding: 10px !important;
+        border-top: 1px solid #1e293b !important;
+        z-index: 99999 !important;
+    }
+}
 .chat-input input{
     flex:1;
     width:100%;
@@ -1488,3 +1620,56 @@ aside.sidebar nav button {
     .hero h2 { font-size: 28px; }
     .hero-description { font-size:16px; }
 }
+/* =========================================================================
+   MOBILE HAMBURGER MENU OVERLAP FIX
+   ========================================================================= */
+/* =========================================================================
+   MOBILE HEADER & TOP NAVIGATION FIX
+   ========================================================================= */
+/* =========================================================================
+   COSMIC HEADER & CLEAN TRANSPARENT HAMBURGER BUTTON
+   ========================================================================= */
+@media screen and (max-width: 800px) {
+    /* Transparent Space Background with Blur for Header */
+    #dashboard-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 65px !important;
+        background: rgba(15, 16, 26, 0.45) !important; /* Space-thru transparent layer */
+        backdrop-filter: blur(12px) !important; /* Glassmorphism cosmic effect */
+        -webkit-backdrop-filter: blur(12px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 15px 0 55px !important;
+        z-index: 99998 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* Clean Transparent 3-Lined Hamburger Button (No Blue Background) */
+    #mobile-menu-btn {
+        position: fixed !important;
+        top: 14px !important;
+        left: 12px !important;
+        right: auto !important;
+        z-index: 99999 !important;
+        background: transparent !important; /* Removed blue background */
+        color: #ffffff !important;
+        border: none !important;
+        padding: 4px 8px !important;
+        font-size: 22px !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+    }
+}
+    /* Push main scrollable view down so it doesn't get covered by top header */
+    .main-content {
+        padding-top: 65px !important;
+    }
+
+    /* Hide redundant bottom guest container if present */
+    #sidebar-account {
+        display: none !important;
+    }

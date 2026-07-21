@@ -35,6 +35,20 @@
             <div class="login-card">
                 <h2>Welcome to Naradha AI</h2>
                 <p class="muted">Sign in to save your chats and preferences.</p>
+                
+                <!-- LANGUAGE SELECTION DROPDOWN -->
+                <div style="margin: 20px 0;">
+                    <label style="display: block; margin-bottom: 8px; color: #cbd5e1; font-size: 14px; font-weight: 500;">Select Your Language</label>
+                    <select id="language-select" style="width: 100%; padding: 12px; background: #1a1b26; color: #fff; border: 1px solid #333; border-radius: 8px; font-size: 14px; cursor: pointer;">
+                        <option value="en">English (English)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="te-roman">Telglish (Romanized Telugu)</option>
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="hi-roman">Hinglish (Romanized Hindi)</option>
+                    </select>
+                    <p id="language-note" style="color: #9ca3af; font-size: 12px; margin-top: 8px;">AI will respond in your selected language</p>
+                </div>
+                
                 <div class="login-actions">
                     <button id="google-login-btn" class="primary">Sign in with Google</button>
                     <button id="login-guest-btn" class="secondary">Continue as Guest</button>
@@ -121,25 +135,40 @@
 
     <!-- CORE WORKSPACE PANEL LAYOUT -->
     <div class="content-area">
-        <section class="bottom-grid" id="main-chat-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <!-- SCREEN ANALYSIS VIEW (hidden by default, shown when screen sync is active) -->
+        <section class="bottom-grid" id="screen-sync-view" style="display: none; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="panel" id="screen-analysis-panel">
                 <h3>Live Screen Analysis</h3>
                 <div class="video-container" style="min-height: 300px;">
                     <video id="screen-video" autoplay playsinline muted style="width:100%; display:none; border-radius: 8px;"></video>
                     <div id="placeholder-text">🖥️
-                        <h4>Start Screen Sync</h4>
-                        <p>Share your window layout frame cleanly here.</p>
+                        <h4>Screen Sync Active</h4>
+                        <p>Your screen is being analyzed in real-time.</p>
                     </div>
                 </div>
             </div>
-            <div class="panel" id="insights-log-panel">
+            <div class="panel" id="screen-insights-panel">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3>Naradha Insights Log</h3>
-                    <!-- GLOBAL AUDIO MUTE BUTTON AT THE TOP -->
+                    <h3>Screen Analysis Insights</h3>
                     <button id="stop-voice-btn" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">🔇 Stop Voice</button>
                 </div>
                 <p><strong>Status:</strong> <span id="status">Ready</span></p>
                 <div id="ai-response" style="height: 350px; overflow-y:auto; display:flex; flex-direction:column; padding: 5px;">
+                    <!-- Chat bubbles append here dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- CHAT DASHBOARD VIEW (default home screen - only chat without screen analysis) -->
+        <section class="bottom-grid" id="main-chat-grid" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+            <div class="panel" id="insights-log-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3>Naradha Chat Dashboard</h3>
+                    <!-- GLOBAL AUDIO MUTE BUTTON AT THE TOP -->
+                    <button id="stop-voice-btn-chat" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">🔇 Stop Voice</button>
+                </div>
+                <p><strong>Status:</strong> <span id="status-chat">Ready</span></p>
+                <div id="ai-response-chat" style="height: 350px; overflow-y:auto; display:flex; flex-direction:column; padding: 5px;">
                     <!-- Chat bubbles append here dynamically -->
                 </div>
             </div>
@@ -203,6 +232,40 @@
             <!-- ENGINE PREFERENCES CONFIGURATION PANEL -->
           <div id="settings-panel" class="scrollable-center" style="display: none; padding: 20px;">
     <h2>Engine Settings / Shared Session Registry</h2>
+    
+    <!-- LANGUAGE & MODE PREFERENCES -->
+    <div style="margin-top:20px; background: rgba(255,255,255,0.02); padding:20px; border-radius:12px; border:1px solid #222;">
+        <h4 style="color:#ddd; margin-bottom:15px;">🌐 Language & Communication Preferences</h4>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 8px; color: #cbd5e1; font-size: 13px;">Preferred Language</label>
+            <select id="settings-language-select" style="width: 100%; padding: 10px; background: #1a1b26; color: #fff; border: 1px solid #333; border-radius: 6px; font-size: 13px;">
+                <option value="en">English (English)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="te-roman">Telglish (Romanized Telugu)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="hi-roman">Hinglish (Romanized Hindi)</option>
+            </select>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+            <div>
+                <label style="color: #ddd; font-weight: 500; display: block;">Best Friend Mode</label>
+                <p style="color: #999; font-size: 12px; margin-top: 4px;">AI talks like a friend, listens & replies with voice</p>
+            </div>
+            <input type="checkbox" id="best-friend-mode-toggle" style="width: 20px; height: 20px; cursor: pointer;">
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+            <div>
+                <label style="color: #ddd; font-weight: 500; display: block;">Enable Voice Responses</label>
+                <p style="color: #999; font-size: 12px; margin-top: 4px;">AI will speak its responses in selected language</p>
+            </div>
+            <input type="checkbox" id="voice-responses-toggle" style="width: 20px; height: 20px; cursor: pointer;" checked>
+        </div>
+    </div>
+    
+    <!-- TEAM SETTINGS -->
     <div style="margin-top:20px; background: rgba(255,255,255,0.02); padding:20px; border-radius:12px; border:1px solid #222;">
         <label style="display:block; margin-bottom:8px; color:#ddd;">Active Team Identity Sessions (Separate names with commas)</label>
         <input type="text" id="settings-email" placeholder="Om Abhinav,Shashi vardhan , balaji" style="width:100%; max-width:450px; padding:12px; background:#1a1b26; color:#fff; border:1px solid #333; border-radius:8px; outline:none; margin-bottom: 20px;">
@@ -272,23 +335,51 @@
 </div>
 
             <!-- INPUT FOOTER PANEL CONTAINER -->
-            <section class="chat-input">
-                <div class="chat-input-wrapper">
-                    <input type="text" id="user-query" placeholder="Ask Naradha AI anything...">
-                    <div id="emoji-dropdown-panel" class="emoji-dropdown">
-                        <div class="emoji-grid">
-                            <span class="emoji-item" onclick="insertEmoji('😀')">😀</span><span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
-                            <span class="emoji-item" onclick="insertEmoji('🔥')">🔥</span><span class="emoji-item" onclick="insertEmoji('✨')">✨</span>
-                            <span class="emoji-item" onclick="insertEmoji('👍')">👍</span><span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
-                        </div>
-                    </div>
-                </div>
-                <button id="emoji-btn" class="chat-action active" onclick="toggleEmojiDropdown()">😊</button>
-                <button id="mic-btn" class="chat-action active">🎤</button>
-                <button id="send-btn" class="chat-action active">➜</button>
-            </section>
+            <!-- FOOTER INPUT SECTION -->
+<section class="chat-input">
+    <button id="file-upload-btn" class="chat-action active" title="Upload PDF or Image">📎</button>
+    <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif" style="display: none;">
+    
+    <button id="emoji-btn" class="chat-action active" onclick="toggleEmojiDropdown()">😊</button>
+    
+    <div class="chat-input-wrapper">
+        <input type="text" id="user-query" placeholder="Ask Naradha AI anything...">
+        <div id="emoji-dropdown-panel" class="emoji-dropdown">
+            <div class="emoji-grid">
+                <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
+                <span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
+                <span class="emoji-item" onclick="insertEmoji('😍')">😍</span>
+                <span class="emoji-item" onclick="insertEmoji('😎')">😎</span>
+                <span class="emoji-item" onclick="insertEmoji('🔥')">🔥</span>
+                <span class="emoji-item" onclick="insertEmoji('✨')">✨</span>
+                <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
+                <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
+                <span class="emoji-item" onclick="insertEmoji('🙏')">👍</span>
+                <span class="emoji-item" onclick="insertEmoji('❤️')">❤️</span>
+                <span class="emoji-item" onclick="insertEmoji('💡')">💡</span>
+                <span class="emoji-item" onclick="insertEmoji('🎉')">🎉</span>
+                <span class="emoji-item" onclick="insertEmoji('🤔')">🤔</span>
+                <span class="emoji-item" onclick="insertEmoji('🤩')">🤩</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- DYNAMIC WHATSAPP-STYLE SINGLE ACTION BUTTON (Mic when empty, Send when typing) -->
+    <button id="mic-btn" class="chat-action active" title="Voice Input">🎤</button>
+    <button id="send-btn" class="chat-action active" style="display: none;" title="Send Message">➜</button>
+</section>
         </main>
     </div>
+    <header id="dashboard-header" class="topbar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="Naradha AI Logo.png" alt="Logo" class="mobile-header-logo" style="width: 36px; height: 36px; object-fit: contain;">
+        <div>
+            <h1 id="user-greeting-title" style="font-size: 18px; margin: 0;">Hello, I am Naradha AI</h1>
+            <p style="font-size: 11px; margin: 0; opacity: 0.8;">Your AI. Your Language.</p>
+        </div>
+    </div>
+    <div class="language-chip" id="topbar-language-chip">🌐 Auto Detect</div>
+</header>
     <script src="app.js"></script>
 </body>
 </html>
