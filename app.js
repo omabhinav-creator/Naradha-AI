@@ -11,6 +11,10 @@ let voiceResponsesEnabled = localStorage.getItem('naradha_voice_enabled') !== 'f
 let screenSyncActive = false;
 let uploadedFileData = null;
 
+// CLIENT-SIDE API KEYS
+const GEMINI_KEY = "AQ.Ab8RN6LC3RD1Dr_0CYBgiBnnRS8_X4hMF5tJan5RZdsiFWBSQA";
+const GROQ_KEY = "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";
+
 const syncBtn = document.getElementById('sync-btn');
 const captureBtn = document.getElementById('capture-btn'); 
 const queryInput = document.getElementById('user-query');
@@ -480,11 +484,8 @@ ABSOLUTELY NO PROFANITY:
             }] 
         };
         try {
-            const response = await fetch("/.netlify/functions/gemini", { 
-                method: "POST", 
-                headers: { "Content-Type": "application/json" }, 
-                body: JSON.stringify(payload) 
-            });
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+            const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
             const data = await response.json();
             if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
             renderResponse(data.candidates[0].content.parts[0].text, container, statusElement);
@@ -497,11 +498,15 @@ ABSOLUTELY NO PROFANITY:
     dispatchGroqFallback(query || "Summarize document", container, identityPrompt, statusElement);
 }
 
+// DIRECT GROQ API CALL (NO POLLINATIONS & NO NETLIFY FUNCTIONS)
 async function dispatchGroqFallback(query, container, identityPrompt, statusElement) {
     try {
-        const response = await fetch("/.netlify/functions/groq", {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Authorization": `Bearer ${GROQ_KEY}`,
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
                 model: "llama-3.1-8b-instant",
                 messages: [
@@ -512,11 +517,11 @@ async function dispatchGroqFallback(query, container, identityPrompt, statusElem
         });
 
         const data = await response.json();
-        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+        if (data.error) throw new Error(typeof data.error === 'object' ? JSON.stringify(data.error) : data.error);
         renderResponse(data.choices[0].message.content, container, statusElement);
     } catch (err) {
-        console.error("Groq fallback error:", err);
-        renderResponse("Unable to reach Naradha AI backend services. Please ensure your Netlify serverless functions are deployed.", container, statusElement);
+        console.error("Groq API error:", err);
+        renderResponse("Network or API error encountered. Please try again.", container, statusElement);
     }
 }
 
@@ -640,17 +645,10 @@ async function executeNativeTTS(text) {
 
     if (!cleanText) return;
 
-    try {
-        const ttsUrl = `/.netlify/functions/tts?text=${encodeURIComponent(cleanText.substring(0, 250))}`;
-        const audio = new Audio(ttsUrl);
-        window.currentAudio = audio;
-        await audio.play();
-    } catch (err) {
-        if (window.speechSynthesis) {
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = (userSelectedLanguage === 'hi-roman' || userSelectedLanguage === 'te-roman') ? 'en-IN' : (userSelectedLanguage === 'te' ? 'te-IN' : (userSelectedLanguage === 'hi' ? 'hi-IN' : 'en-IN'));
-            window.speechSynthesis.speak(utterance);
-        }
+    if (window.speechSynthesis) {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = (userSelectedLanguage === 'hi-roman' || userSelectedLanguage === 'te-roman') ? 'en-IN' : (userSelectedLanguage === 'te' ? 'te-IN' : (userSelectedLanguage === 'hi' ? 'hi-IN' : 'en-IN'));
+        window.speechSynthesis.speak(utterance);
     }
 }
 
@@ -757,9 +755,12 @@ if (generateDocBtn) {
         const contentPrompt = `You are an expert technical documentation draft writer. Write a comprehensive, extremely detailed, structured document profile layout about the exact topic: "${userNotes}". Group everything into clean semantic HTML sections with visible sub-headings (<h3>) and structured bullet formatting parameters. Return only raw web HTML layout code strings without backticks or markdown wrappers.`;
 
         try {
-            const res = await fetch("/.netlify/functions/groq", {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Authorization": `Bearer ${GROQ_KEY}`, 
+                    "Content-Type": "application/json" 
+                },
                 body: JSON.stringify({
                     model: "llama-3.1-8b-instant",
                     messages: [{ role: "user", content: contentPrompt }]
@@ -867,9 +868,10 @@ async function processGroupChatEngine() {
     teamLog.scrollTop = teamLog.scrollHeight;
 
     try {
-        const response = await fetch("/.netlify/functions/groq", {
+        const url = `https://api.groq.com/openai/v1/chat/completions`;
+        const response = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
             body: JSON.stringify({
                 model: "llama-3.1-8b-instant",
                 messages: [
