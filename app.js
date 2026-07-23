@@ -491,14 +491,14 @@ ABSOLUTELY NO PROFANITY:
             renderResponse(data.candidates[0].content.parts[0].text, container, statusElement);
             return;
         } catch (e) {
-            console.warn("Gemini payload error, switching to Groq fallback:", e);
+            console.warn("Gemini payload error, switching to fallback:", e);
         }
     }
 
     dispatchGroqFallback(query || "Summarize document", container, identityPrompt, statusElement);
 }
 
-// DIRECT GROQ API CALL (NO NETLIFY FUNCTIONS & NO POLLINATIONS)
+// DIRECT GROQ API CALL + KEYLESS POLLINATIONS FALLBACK
 async function dispatchGroqFallback(query, container, identityPrompt, statusElement) {
     // 1. Try Direct Groq API
     try {
@@ -540,15 +540,6 @@ async function dispatchGroqFallback(query, container, identityPrompt, statusElem
     }
 
     renderResponse("Hello! How can I assist you with your workspace project today?", container, statusElement);
-}
-
-        const data = await response.json();
-        if (data.error) throw new Error(typeof data.error === 'object' ? JSON.stringify(data.error) : data.error);
-        renderResponse(data.choices[0].message.content, container, statusElement);
-    } catch (err) {
-        console.error("Groq API error:", err);
-        renderResponse("Network error encountered. Please try again.", container, statusElement);
-    }
 }
 
 function renderResponse(aiReply, container, statusElement) {
