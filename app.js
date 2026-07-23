@@ -491,14 +491,14 @@ ABSOLUTELY NO PROFANITY:
             renderResponse(data.candidates[0].content.parts[0].text, container, statusElement);
             return;
         } catch (e) {
-            console.warn("Gemini payload error, switching to fallback:", e);
+            console.warn("Gemini payload error, switching to Groq fallback:", e);
         }
     }
 
     dispatchGroqFallback(query || "Summarize document", container, identityPrompt, statusElement);
 }
 
-// DIRECT GROQ API CALL (NO POLLINATIONS & NO NETLIFY FUNCTIONS)
+// DIRECT GROQ API CALL (NO NETLIFY FUNCTIONS & NO POLLINATIONS)
 async function dispatchGroqFallback(query, container, identityPrompt, statusElement) {
     try {
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -521,7 +521,7 @@ async function dispatchGroqFallback(query, container, identityPrompt, statusElem
         renderResponse(data.choices[0].message.content, container, statusElement);
     } catch (err) {
         console.error("Groq API error:", err);
-        renderResponse("Network or API error encountered. Please try again.", container, statusElement);
+        renderResponse("Network error encountered. Please try again.", container, statusElement);
     }
 }
 
