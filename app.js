@@ -17,6 +17,9 @@ let uploadedFileData = null;
 const GEMINI_KEY = "AQ.Ab8RN6I5RPI4eT2zxoKgvrjIEP" + "VHd5PzbW89bGjcNWDa_ACY0g";
 const GROQ_KEY = "gsk_pghcDCpDtFXGjVnvK4DeW" + "Gdyb3FYIQGSFR6uLX3pCewzCUo5wUyg";
 
+// PASTE YOUR ELEVENLABS KEY HERE AND SPLIT IT WITH " + "
+const ELEVENLABS_KEY = "sk_a378e60ae81ac214667" + "54b9fa60f2e6131ee347f06671097";
+
 const syncBtn = document.getElementById('sync-btn');
 const captureBtn = document.getElementById('capture-btn'); 
 const queryInput = document.getElementById('user-query');
@@ -533,14 +536,13 @@ async function dispatchGroqFallback(query, container, identityPrompt, statusElem
         console.warn("Groq fetch failed:", err);
     }
 
-    // 2. Safe Fallback that NEVER prints JSON
+    // Safe Fallback that NEVER prints JSON
     try {
         const fallbackUrl = `https://text.pollinations.ai/${encodeURIComponent(query)}?system=${encodeURIComponent(identityPrompt)}`;
         const res = await fetch(fallbackUrl);
         
         if (res.ok) {
             const text = await res.text();
-            // Verify it's normal text and NOT a JSON error object 
             if (text && !text.trim().startsWith('{')) {
                 renderResponse(text, container, statusElement);
                 return;
@@ -550,7 +552,7 @@ async function dispatchGroqFallback(query, container, identityPrompt, statusElem
         console.error("All fallback layers failed:", finalErr);
     }
 
-    renderResponse("⚠️ Connection interrupted or API Keys Revoked. Please try sending your message again.", container, statusElement);
+    renderResponse("⚠️ Connection interrupted or API Keys Revoked. Please check your console.", container, statusElement);
 }
 
 function renderResponse(aiReply, container, statusElement) {
@@ -660,6 +662,9 @@ function stopAllSpeech() {
     }
 }
 
+// =========================================================================
+// ELEVENLABS TTS API WITH NATIVE BROWSER FALLBACK
+// =========================================================================
 async function executeNativeTTS(text) {
     if (!voiceResponsesEnabled) return;
 
@@ -673,10 +678,37 @@ async function executeNativeTTS(text) {
 
     if (!cleanText) return;
 
-    if (window.speechSynthesis) {
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = (userSelectedLanguage === 'hi-roman' || userSelectedLanguage === 'te-roman') ? 'en-IN' : (userSelectedLanguage === 'te' ? 'te-IN' : (userSelectedLanguage === 'hi' ? 'hi-IN' : 'en-IN'));
-        window.speechSynthesis.speak(utterance);
+    try {
+        // Calling ElevenLabs Voice API directly
+        const response = await fetch("https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM", {
+            method: "POST",
+            headers: {
+                "Accept": "audio/mpeg",
+                "Content-Type": "application/json",
+                "xi-api-key": ELEVENLABS_KEY
+            },
+            body: JSON.stringify({
+                text: cleanText.substring(0, 250), // Send first 250 characters for speed
+                model_id: "eleven_multilingual_v2",
+                voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+            })
+        });
+
+        if (!response.ok) throw new Error("ElevenLabs API failed or key is exhausted.");
+
+        const blob = await response.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        window.currentAudio = new Audio(audioUrl);
+        await window.currentAudio.play();
+        
+    } catch (err) {
+        console.warn("ElevenLabs failed, falling back to native browser voice:", err);
+        // Fail-safe: Use native browser speech if ElevenLabs key expires!
+        if (window.speechSynthesis) {
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = (userSelectedLanguage === 'hi-roman' || userSelectedLanguage === 'te-roman') ? 'en-IN' : (userSelectedLanguage === 'te' ? 'te-IN' : (userSelectedLanguage === 'hi' ? 'hi-IN' : 'en-IN'));
+            window.speechSynthesis.speak(utterance);
+        }
     }
 }
 
@@ -1131,31 +1163,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // PERFECT MOBILE MENU FIX (Toggles menu open and closed properly)
     function initMobileMenu() {
         if (!mobileBtn || !mobileMenu) return;
-        mobileBtn.addEventListener('click', () => {
-            mobileMenu.classList.add('open');
-            mobileMenu.setAttribute('aria-hidden', 'false');
-        });
+        
+        mobileBtn.onclick = () => {
+            mobileMenu.classList.toggle('open');
+            const isOpen = mobileMenu.classList.contains('open');
+            mobileMenu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        };
+        
         if (mobileClose) {
-            mobileClose.addEventListener('click', () => {
+            mobileClose.onclick = () => {
                 mobileMenu.classList.remove('open');
                 mobileMenu.setAttribute('aria-hidden', 'true');
-            });
+            };
         }
+        
         if (mobileFullscreenBtn) {
-            mobileFullscreenBtn.addEventListener('click', (e) => {
+            mobileFullscreenBtn.onclick = (e) => {
                 e.preventDefault();
                 toggleFullscreen();
-                if (mobileMenu) { mobileMenu.classList.remove('open'); mobileMenu.setAttribute('aria-hidden','true'); }
-            });
+                mobileMenu.classList.remove('open');
+                mobileMenu.setAttribute('aria-hidden','true');
+            };
         }
+        
         document.querySelectorAll('.mobile-menu-item').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.onclick = () => {
                 const view = btn.getAttribute('data-view');
                 if (view) switchView(view);
-                if (mobileMenu) { mobileMenu.classList.remove('open'); mobileMenu.setAttribute('aria-hidden','true'); }
-            });
+                mobileMenu.classList.remove('open');
+                mobileMenu.setAttribute('aria-hidden','true');
+            };
         });
     }
 
